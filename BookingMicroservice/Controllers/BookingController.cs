@@ -19,7 +19,7 @@ namespace BookingMicroservice.Controllers
             _bookingService = bookingService;
         }
 
-        [HttpPost(Name = "/bookings")]
+        [HttpPost(Name = "/api/bookings")]
         public async Task<ActionResult> CreateAppointment([FromBody]BookingModel bookingModel)
         {
             if (!ModelState.IsValid)
@@ -27,20 +27,14 @@ namespace BookingMicroservice.Controllers
                 return BadRequest(ModelState);
             }
 
-            bool IsAvailable = await _bookingService.CheckAvailability(bookingModel);
-
-            if (!IsAvailable)
-            {
-                return Conflict("This appointment is no longer available. Please refresh the page and try again.");
-            }
-
             try
             {
-                var result = await _bookingService.CreateAppointment(bookingModel);
-                return Created((AppointmentDetails)result);
+                var result = await _bookingService.CreateBooking(bookingModel);
+                // fill Created() with a result object passing back appointment details
+                return Created();
             }
-            catch (Exception ex) { 
-                return(BadRequest(ex));
+            catch (Exception) {
+                return Conflict("This appointment is no longer available. Please refresh the page and try again.");
             }
         }
     }

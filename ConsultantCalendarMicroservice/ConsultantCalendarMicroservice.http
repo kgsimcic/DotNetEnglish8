@@ -1,0 +1,6 @@
+@ConsultantCalendarMicroservice_HostAddress = http://localhost:5190
+
+GET {{ConsultantCalendarMicroservice_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -16,7 +16,7 @@ namespace ConsultantCalendarMicroservice.Models
     public class ConsultantModelList
     {
         public List<ConsultantCalendar>? ConsultantCalendars { get; set; }
-        public List<Consultant>? Consultants { get; set; }
+        public List<ConsultantModel>? Consultants { get; set; }
         public int SelectedConsultantId { get; set; } = int.MaxValue;
         public SelectList? ConsultantsList { get; set; }
     }

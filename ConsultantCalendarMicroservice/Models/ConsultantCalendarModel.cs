@@ -4,9 +4,8 @@ namespace ConsultantCalendarMicroservice.Models
 {
     public class ConsultantCalendarModel
     {
-        [Key]
         public int Id { get; set; }
-        public string ConsultantName { get; set; } = string.Empty;
+        public int ConsultantId { get; set; }
 
         public List<DateTime> AvailableDates { get; set; } = new List<DateTime>();
 

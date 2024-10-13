@@ -5,22 +5,22 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-nanoserver-1809 AS base
 WORKDIR /app
-EXPOSE 8081
+EXPOSE 5001
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-nanoserver-1809 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["BookingMicroservice/BookingMicroservice.csproj", "BookingMicroservice/"]
-RUN dotnet restore "./BookingMicroservice/BookingMicroservice.csproj"
+COPY ["OcelotApiGW/OcelotApiGW.csproj", "OcelotApiGW/"]
+RUN dotnet restore "./OcelotApiGW/OcelotApiGW.csproj"
 COPY . .
-WORKDIR "/src/BookingMicroservice"
-RUN dotnet build "./BookingMicroservice.csproj" -c %BUILD_CONFIGURATION% -o /app/build
+WORKDIR "/src/OcelotApiGW"
+RUN dotnet build "./OcelotApiGW.csproj" -c %BUILD_CONFIGURATION% -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./BookingMicroservice.csproj" -c %BUILD_CONFIGURATION% -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./OcelotApiGW.csproj" -c %BUILD_CONFIGURATION% -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "BookingMicroservice.dll"]
+ENTRYPOINT ["dotnet", "OcelotApiGW.dll"]

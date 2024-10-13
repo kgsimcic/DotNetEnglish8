@@ -5,6 +5,6 @@ namespace ConsultantCalendarMicroservice.Services
 {
     public interface IConsultantService
     {
-        public Task<List<ConsultantModel>> GetConsultants();
+        public Task<IEnumerable<ConsultantModel>> GetConsultants();
     }
 }
