@@ -5,6 +5,7 @@ namespace BookingMicroservice.Services
 {
     public interface IBookingService
     {
-        public Task<bool> CreateBooking(BookingModel bookingModel);
+        public Task<int> CreateBooking(BookingModel bookingModel);
+        public Task<IEnumerable<AppointmentDetails>> GetBookings(int ConsultantId, int month);
     }
 }

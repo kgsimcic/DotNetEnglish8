@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ConsultantCalendarMicroservice.Models
+namespace DotNetProject8.Models
 {
     public class ConsultantCalendarModel
     {

@@ -16,20 +16,17 @@ namespace ConsultantCalendarMicroservice.Services
 
         public async Task<ConsultantCalendarModel> GetConsultantCalendar(int consultantId, int selectedMonth)
         {
-            // using consultant name, get calendar for them. 
-            List<ConsultantCalendar> consultantCalendars = await DbContext.FindAsync<ConsultantCalendar>(consultantId);
-            // make sure to create model objects off of them before returning.
-            List<>
+            List<DateTime> consultantAvailableDates = await DbContext.ConsultantCalendars
+                .Where(c => c.ConsultantId == consultantId && c.Date.Month == selectedMonth)
+                .Select(o => o.Date).ToListAsync();
 
-
-            return Consultants.Select(c => new ConsultantCalendarModel
-            {
-                Id,
-                ConsultantName = consultantName,
-                AvailableDates = 
-            });
+            ConsultantCalendarModel consultantCalendarModel = new ConsultantCalendarModel {
+                MonthId = selectedMonth,
+                ConsultantId = consultantId,
+                AvailableDates = consultantAvailableDates
+            };
+            return consultantCalendarModel;
         }
 
-        
     }
 }

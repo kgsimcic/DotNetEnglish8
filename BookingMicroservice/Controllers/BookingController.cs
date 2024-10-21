@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 namespace BookingMicroservice.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class BookingController : ControllerBase
     {
 
@@ -19,9 +19,10 @@ namespace BookingMicroservice.Controllers
             _bookingService = bookingService;
         }
 
-        [HttpPost(Name = "/api/bookings")]
+        [HttpPost("/bookings")]
         public async Task<ActionResult> CreateAppointment([FromBody]BookingModel bookingModel)
         {
+            _logger.LogInformation("Attempting to create appointment....");
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -34,8 +35,20 @@ namespace BookingMicroservice.Controllers
                 return Created();
             }
             catch (Exception) {
+                _logger.LogWarning("Concurrency Exception occurred. Cancelling appointment creation.");
                 return Conflict("This appointment is no longer available. Please refresh the page and try again.");
             }
+        }
+
+        [HttpGet("/bookings")]
+        public async Task<ActionResult> GetAppointments(int ConsultantId, int month)
+        {
+            _logger.LogInformation($"Fetching Bookings for next {month} for consultant ID#{ConsultantId}....");
+            if (!ModelState.IsValid) {
+                return BadRequest(ModelState);
+            }
+
+            return Ok(await _bookingService.GetBookings(ConsultantId, month));
         }
     }
 }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ConsultantCalendarMicroservice.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ConsultantCalendarController : ControllerBase
     {
 
@@ -22,7 +22,7 @@ namespace ConsultantCalendarMicroservice.Controllers
             _consultantService = consultantService;
         }
 
-        [HttpGet(Name = "/api/consultants")]
+        [HttpGet("/consultants")]
         public async Task<ActionResult> GetAllConsultants()
         {
             _logger.LogInformation("Connected to endpoint /consultants! Retrieving all info...");
@@ -30,10 +30,10 @@ namespace ConsultantCalendarMicroservice.Controllers
             return Ok(result);
         }
 
-        [HttpGet(Name = "api/consultants/{id}/calendar")]
-        public async Task<ActionResult> GetConsultantCalendar(int consultantId, int selectedMonth)
+        [HttpGet("/consultants/{consultantId}")]
+        public async Task<ActionResult> GetConsultantCalendar(int consultantId, int selectedMonth = 3)
         {
-            _logger.LogInformation($"Connected to endpoint /consultants/{consultantId}/calendar! Retrieving requested consultant calendar.");
+            _logger.LogInformation($"Connected to endpoint /consultants/{consultantId}! Retrieving requested consultant calendar.");
 
             try
             {

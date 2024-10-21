@@ -14,13 +14,15 @@ namespace DotNetProject8.Controllers
             _routingService = routingService;
         }
 
-        public async Task<ActionResult> NewAppointment()
+        public async Task<ActionResult> NewAppointment(int selectedConsultantId, string selectedConsultantName, DateTime selectedDate)
         {
+            _logger.LogInformation("Booking Request Form loading...");
             return View();
         }
 
         public async Task<ActionResult> ConfirmOrDenyAppointment()
         {
+            _logger.LogInformation("Appointment Creation Requested. Passing to Booking Service...");
             return View();
         }
     }

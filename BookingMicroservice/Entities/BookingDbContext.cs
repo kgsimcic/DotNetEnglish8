@@ -17,10 +17,6 @@ public partial class BookingDbContext : DbContext
 
     public virtual DbSet<Appointment> Appointments { get; set; }
 
-    public virtual DbSet<Consultant> Consultants { get; set; }
-
-    public virtual DbSet<ConsultantCalendar> ConsultantCalendars { get; set; }
-
     public virtual DbSet<Patient> Patients { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -34,30 +30,6 @@ public partial class BookingDbContext : DbContext
 
             entity.Property(e => e.EndDateTime).HasColumnType("datetime");
             entity.Property(e => e.StartDateTime).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<Consultant>(entity =>
-        {
-            entity.ToTable("Consultant");
-
-            entity.Property(e => e.Fname)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("FName");
-            entity.Property(e => e.Lname)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("LName");
-            entity.Property(e => e.Speciality)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-        });
-
-        modelBuilder.Entity<ConsultantCalendar>(entity =>
-        {
-            entity.ToTable("ConsultantCalendar");
-
-            entity.Property(e => e.Date).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<Patient>(entity =>

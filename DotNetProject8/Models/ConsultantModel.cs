@@ -1,8 +1,7 @@
-﻿using ConsultantCalendarMicroservice.Entities;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace ConsultantCalendarMicroservice.Models
+namespace DotNetProject8.Models
 {
     public class ConsultantModel
     {
@@ -15,7 +14,7 @@ namespace ConsultantCalendarMicroservice.Models
 
     public class ConsultantModelList
     {
-        public List<ConsultantCalendar>? ConsultantCalendars { get; set; }
+        public List<ConsultantCalendarModel>? ConsultantCalendars { get; set; }
         public List<ConsultantModel>? Consultants { get; set; }
         public int SelectedConsultantId { get; set; } = int.MaxValue;
         public SelectList? ConsultantsList { get; set; }

@@ -9,7 +9,7 @@ public partial class ConsultantCalendar
 
     public int? ConsultantId { get; set; }
 
-    public DateTime? Date { get; set; }
+    public DateTime Date { get; set; }
 
     public bool? Available { get; set; }
 }

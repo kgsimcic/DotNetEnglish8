@@ -15,26 +15,15 @@ public partial class ConsultantCalendarDbContext : DbContext
     {
     }
 
-    public virtual DbSet<Appointment> Appointments { get; set; }
-
     public virtual DbSet<Consultant> Consultants { get; set; }
 
     public virtual DbSet<ConsultantCalendar> ConsultantCalendars { get; set; }
-
-    public virtual DbSet<Patient> Patients { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Appointment>(entity =>
-        {
-            entity.ToTable("Appointment");
-
-            entity.Property(e => e.EndDateTime).HasColumnType("datetime");
-            entity.Property(e => e.StartDateTime).HasColumnType("datetime");
-        });
 
         modelBuilder.Entity<Consultant>(entity =>
         {
@@ -58,33 +47,6 @@ public partial class ConsultantCalendarDbContext : DbContext
             entity.ToTable("ConsultantCalendar");
 
             entity.Property(e => e.Date).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<Patient>(entity =>
-        {
-            entity.ToTable("Patient");
-
-            entity.Property(e => e.Id).HasColumnName("ID");
-            entity.Property(e => e.Address1)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-            entity.Property(e => e.Address2)
-                .HasMaxLength(255)
-                .IsUnicode(false);
-            entity.Property(e => e.City)
-                .HasMaxLength(50)
-                .IsUnicode(false);
-            entity.Property(e => e.Fname)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("FName");
-            entity.Property(e => e.Lname)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("LName");
-            entity.Property(e => e.Postcode)
-                .HasMaxLength(10)
-                .IsUnicode(false);
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -1,3 +1,8 @@
+using BookingMicroservice.Entities;
+using BookingMicroservice.Services;
+using BookingMicroservice.Controllers;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,6 +11,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<BookingDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddTransient<IBookingService, BookingService>();
 
 var app = builder.Build();
 
