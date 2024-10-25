@@ -1,4 +1,5 @@
 using ConsultantCalendarMicroservice.Entities;
+using ConsultantCalendarMicroservice.Controllers;
 using ConsultantCalendarMicroservice.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,6 @@ builder.Services.AddSwaggerGen();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ConsultantCalendarDbContext>(options => options.UseSqlServer(connectionString));
-
 builder.Services.AddTransient<ICalendarService, CalendarService>();
 builder.Services.AddTransient<IConsultantService, ConsultantService>();
 

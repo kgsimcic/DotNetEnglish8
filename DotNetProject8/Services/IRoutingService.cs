@@ -1,7 +1,9 @@
-﻿namespace DotNetProject8.Services
+﻿using DotNetProject8.Models;
+
+namespace DotNetProject8.Services
 {
     public interface IRoutingService
     {
-        public Task<string> GetConsultantsAsync();
+        public Task<List<ConsultantModel>?> GetConsultantsAsync();
     }
 }

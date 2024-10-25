@@ -5,7 +5,7 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/gateway/bookings",
-      "UpstreamHttpMethod": [ "POST" ],
+      "UpstreamHttpMethod": [ "POST", "GET" ],
       "DownstreamPathTemplate": "/api/bookings",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [

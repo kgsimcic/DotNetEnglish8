@@ -1,7 +1,10 @@
 using DotNetProject8.Models;
 using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using NuGet.Protocol.Core.Types;
 using System.Diagnostics;
+using System.Drawing.Printing;
 
 namespace DotNetProject8.Controllers
 {
@@ -16,9 +19,19 @@ namespace DotNetProject8.Controllers
             _routingService = routingService;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+
+            List<ConsultantModel>? consultantModels = await _routingService.GetConsultantsAsync();
+            if (consultantModels == null)
+            {
+                _logger.LogWarning("nothing found");
+            }
+
+            return View(new ConsultantModelList
+            {
+                Consultants = consultantModels
+            });
         }
 
         public IActionResult Privacy()

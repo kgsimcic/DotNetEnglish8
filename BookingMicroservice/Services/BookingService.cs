@@ -54,10 +54,6 @@ namespace BookingMicroservice.Services
             await _dbContext.Appointments.AddAsync(appointment);
             int result = await _dbContext.SaveChangesAsync();
 
-            // now that time-sensitive appointment is booked, other entities can be crafted and added (should I 
-            // split tis into another method?)
-
-          
             return (result);
         }
 

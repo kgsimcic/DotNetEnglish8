@@ -1,4 +1,5 @@
-﻿using DotNetProject8.Services;
+﻿using DotNetProject8.Models;
+using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetProject8.Controllers
@@ -16,8 +17,10 @@ namespace DotNetProject8.Controllers
 
         public async Task<IActionResult> GetConsultantCalendar()
         {
-            var consultants = await _routingService.GetConsultantsAsync();
-            ViewData["Products"] = consultants;
+            List<ConsultantModel>? consultants = await _routingService.GetConsultantsAsync();
+            // ViewData["Products"] = consultants;
+
+
             return View();
         }
     }
