@@ -6,7 +6,7 @@
     {
       "UpstreamPathTemplate": "/gateway/bookings",
       "UpstreamHttpMethod": [ "POST", "GET" ],
-      "DownstreamPathTemplate": "/api/bookings",
+      "DownstreamPathTemplate": "/api/booking/bookings",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -18,7 +18,7 @@
     {
       "UpstreamPathTemplate": "/gateway/consultants",
       "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/consultants",
+      "DownstreamPathTemplate": "/api/consultantcalendar/consultants/",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -30,7 +30,7 @@
     {
       "UpstreamPathTemplate": "/gateway/consultants/{id}",
       "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/consultants/{id}",
+      "DownstreamPathTemplate": "/api/consultantcalendar/consultants/{id}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

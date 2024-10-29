@@ -32,15 +32,14 @@ namespace BookingMicroservice.Services
                 Postcode = bookingModel.Patient.Postcode
             };
 
-            await _dbContext.Patients.AddAsync(patient);
-            await _dbContext.SaveChangesAsync();
-
             Appointment appointment = new Appointment
             {
                 StartDateTime = appointmentTime,
                 EndDateTime = appointmentTime.AddHours(1),
                 ConsultantId = bookingModel.Appointment.ConsultantId,
-                PatientId = patient.Id
+                PatientId = patient.Id,
+                Patient = patient
+
             };
 
             var possibleAppointments = await _dbContext.Appointments.Where(a => a.StartDateTime > appointment.EndDateTime 
@@ -48,16 +47,21 @@ namespace BookingMicroservice.Services
 
             if (possibleAppointments.Any())
             {
-                throw new DBConcurrencyException("Timeslot conflict");
+                return 0;
             }
-
-            await _dbContext.Appointments.AddAsync(appointment);
-            int result = await _dbContext.SaveChangesAsync();
-
-            return (result);
+            else
+            {
+                await _dbContext.Appointments.AddAsync(appointment);
+                int result = await _dbContext.SaveChangesAsync();
+                if (result == 0)
+                {
+                    _logger.LogInformation("SaveChangesAsync Failed in BookingDbContext. Why???");
+                }
+                return (result);
+            }
         }
 
-        public async Task<IEnumerable<AppointmentDetails>> GetBookings(int consultantId, int month)
+        /*public async Task<IEnumerable<AppointmentDetails>> GetBookings(int consultantId, int month)
         {
             int year = DateTime.Now.Year;
             if (month < DateTime.Now.Month)
@@ -74,6 +78,6 @@ namespace BookingMicroservice.Services
                 AppointmentDate = a.StartDateTime,
                 AppointmentTime = a.StartDateTime
             });
-        }
+        }*/
     }
 }

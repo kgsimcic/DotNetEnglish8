@@ -19,9 +19,6 @@ public partial class BookingDbContext : DbContext
 
     public virtual DbSet<Patient> Patients { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:DefaultConnection");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Appointment>(entity =>
@@ -30,6 +27,10 @@ public partial class BookingDbContext : DbContext
 
             entity.Property(e => e.EndDateTime).HasColumnType("datetime");
             entity.Property(e => e.StartDateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Patient).WithMany(p => p.Appointments)
+                .HasForeignKey(d => d.PatientId)
+                .HasConstraintName("FK_Appointment_Patient");
         });
 
         modelBuilder.Entity<Patient>(entity =>

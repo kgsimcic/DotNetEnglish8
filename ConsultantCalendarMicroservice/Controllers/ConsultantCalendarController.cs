@@ -22,7 +22,7 @@ namespace ConsultantCalendarMicroservice.Controllers
             _consultantService = consultantService;
         }
 
-        [HttpGet("/consultants")]
+        [HttpGet("consultants")]
         public async Task<ActionResult> GetAllConsultants()
         {
             _logger.LogInformation("Connected to endpoint /consultants! Retrieving all info...");
@@ -30,7 +30,7 @@ namespace ConsultantCalendarMicroservice.Controllers
             return Ok(result);
         }
 
-        [HttpGet("/consultants/{consultantId}")]
+        [HttpGet("consultants/{consultantId}")]
         public async Task<ActionResult> GetConsultantCalendar(int consultantId, int selectedMonth = 3)
         {
             _logger.LogInformation($"Connected to endpoint /consultants/{consultantId}! Retrieving requested consultant calendar.");

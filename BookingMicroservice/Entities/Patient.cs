@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using BookingMicroservice.Entities;
 
 namespace BookingMicroservice.Entities;
 
@@ -18,4 +19,6 @@ public partial class Patient
     public string? City { get; set; }
 
     public string? Postcode { get; set; }
+
+    public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 }

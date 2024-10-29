@@ -12,14 +12,16 @@ namespace BookingMicroservice.Controllers
 
         private readonly ILogger<BookingController> _logger;
         private readonly IBookingService _bookingService;
+        // private readonly BookingWorkerService
 
         public BookingController(ILogger<BookingController> logger, IBookingService bookingService)
         {
             _logger = logger;
             _bookingService = bookingService;
+            
         }
 
-        [HttpPost("/bookings")]
+        [HttpPost("bookings")]
         public async Task<ActionResult> CreateAppointment([FromBody]BookingModel bookingModel)
         {
             _logger.LogInformation("Attempting to create appointment....");
@@ -28,27 +30,26 @@ namespace BookingMicroservice.Controllers
                 return BadRequest(ModelState);
             }
 
-            try
+            int result = await _bookingService.CreateBooking(bookingModel);
+
+            if (result == 0)
             {
-                var result = await _bookingService.CreateBooking(bookingModel);
-                // fill Created() with a result object passing back appointment details
-                return Created();
-            }
-            catch (Exception) {
-                _logger.LogWarning("Concurrency Exception occurred. Cancelling appointment creation.");
                 return Conflict("This appointment is no longer available. Please refresh the page and try again.");
+            } else
+            {
+                return Created();
             }
         }
 
-        [HttpGet("/bookings")]
+        [HttpGet("bookings")]
         public async Task<ActionResult> GetAppointments(int ConsultantId, int month)
         {
             _logger.LogInformation($"Fetching Bookings for next {month} for consultant ID#{ConsultantId}....");
             if (!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
-
-            return Ok(await _bookingService.GetBookings(ConsultantId, month));
+            // real result: await _bookingService.GetBookings(ConsultantId, month)
+            return Ok();
         }
     }
 }
