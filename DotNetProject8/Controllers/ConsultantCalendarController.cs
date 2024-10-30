@@ -15,7 +15,7 @@ namespace DotNetProject8.Controllers
             _routingService = routingService;
         }
 
-        public async Task<IActionResult> GetConsultantCalendar()
+        public async Task<ActionResult> GetConsultants()
         {
             List<ConsultantModel>? consultants = await _routingService.GetConsultantsAsync();
             // ViewData["Products"] = consultants;
@@ -23,5 +23,11 @@ namespace DotNetProject8.Controllers
 
             return View();
         }
+
+        public async Task<ActionResult> GetConsultantCalendar(int consultantId, int selectedMonth = 3)
+        {
+            return View(await _routingService.GetConsultantCalendar(consultantId, selectedMonth));
+        }
+
     }
 }

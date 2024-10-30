@@ -2,6 +2,7 @@ using BookingMicroservice.Models;
 using Microsoft.AspNetCore.Mvc;
 using BookingMicroservice.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
+using SchedulingWorkerService;
 
 namespace BookingMicroservice.Controllers
 {
@@ -12,19 +13,19 @@ namespace BookingMicroservice.Controllers
 
         private readonly ILogger<BookingController> _logger;
         private readonly IBookingService _bookingService;
-        // private readonly BookingWorkerService
+        private readonly BookingWorkerService _workerService;
 
-        public BookingController(ILogger<BookingController> logger, IBookingService bookingService)
+        public BookingController(ILogger<BookingController> logger, IBookingService bookingService, BookingWorkerService bookingWorkerService)
         {
             _logger = logger;
             _bookingService = bookingService;
-            
+            _workerService = bookingWorkerService;
         }
 
         [HttpPost("bookings")]
         public async Task<ActionResult> CreateAppointment([FromBody]BookingModel bookingModel)
         {
-            _logger.LogInformation("Attempting to create appointment....");
+            _logger.LogInformation("BookingMS: Attempting to create appointment....");
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -41,15 +42,14 @@ namespace BookingMicroservice.Controllers
             }
         }
 
-        [HttpGet("bookings")]
-        public async Task<ActionResult> GetAppointments(int ConsultantId, int month)
+        [HttpGet("bookings/{consultantId}-{month}")]
+        public async Task<ActionResult> GetAppointments(int consultantId, int month)
         {
-            _logger.LogInformation($"Fetching Bookings for next {month} for consultant ID#{ConsultantId}....");
+            _logger.LogInformation($"BookingMS: Fetching Bookings for next {month} for consultant ID#{consultantId}....");
             if (!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
-            // real result: await _bookingService.GetBookings(ConsultantId, month)
-            return Ok();
+            return Ok(await _bookingService.GetBookings(consultantId, month));
         }
     }
 }

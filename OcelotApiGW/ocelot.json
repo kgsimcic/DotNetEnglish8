@@ -5,8 +5,20 @@
   "Routes": [
     {
       "UpstreamPathTemplate": "/gateway/bookings",
-      "UpstreamHttpMethod": [ "POST", "GET" ],
+      "UpstreamHttpMethod": [ "POST" ],
       "DownstreamPathTemplate": "/api/booking/bookings",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8081
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/bookings/{consultantId}-{month}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/booking/bookings/{consultantId}-{month}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

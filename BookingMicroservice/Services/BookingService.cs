@@ -61,16 +61,17 @@ namespace BookingMicroservice.Services
             }
         }
 
-        /*public async Task<IEnumerable<AppointmentDetails>> GetBookings(int consultantId, int month)
+
+        public async Task<IEnumerable<AppointmentDetails>> GetBookings(int consultantId, int selectedMonth)
         {
             int year = DateTime.Now.Year;
-            if (month < DateTime.Now.Month)
+            if (selectedMonth < DateTime.Now.Month)
             {
                 year = year + 1;
             }
-            DateTime targetMonth = new (year, month, 1);
+            DateTime targetMonth = new(year, selectedMonth, 1);
 
-            var appointmentsInMonth = await _dbContext.Appointments.Where(a => a.ConsultantId == consultantId 
+            var appointmentsInMonth = await _dbContext.Appointments.Where(a => a.ConsultantId == consultantId
             && a.StartDateTime.Month == targetMonth.Month && a.StartDateTime.Year == targetMonth.Year).ToListAsync();
 
             return appointmentsInMonth.Select(a => new AppointmentDetails
@@ -78,6 +79,6 @@ namespace BookingMicroservice.Services
                 AppointmentDate = a.StartDateTime,
                 AppointmentTime = a.StartDateTime
             });
-        }*/
+        }
     }
 }

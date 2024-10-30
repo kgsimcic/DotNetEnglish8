@@ -1,4 +1,5 @@
-﻿using DotNetProject8.Services;
+﻿using DotNetProject8.Models;
+using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetProject8.Controllers
@@ -16,13 +17,14 @@ namespace DotNetProject8.Controllers
 
         public async Task<ActionResult> NewAppointment(int selectedConsultantId, string selectedConsultantName, DateTime selectedDate)
         {
-            _logger.LogInformation("Booking Request Form loading...");
-            return View();
+            _logger.LogInformation("DN8: Redirecting to CreateBooking view...");
+            return View("CreateBooking");
         }
 
-        public async Task<ActionResult> ConfirmOrDenyAppointment()
+        public async Task<ActionResult> ConfirmOrDenyAppointment([FromBody] BookingModel bookingModel)
         {
-            _logger.LogInformation("Appointment Creation Requested. Passing to Booking Service...");
+            _logger.LogInformation("DN8: Appointment Creation Requested. Passing to Booking Service...");
+            // _routingService.CreateAppointment?
             return View();
         }
     }

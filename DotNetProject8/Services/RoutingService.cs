@@ -25,6 +25,38 @@ namespace DotNetProject8.Services
             return (consultantModels);
         }
 
+        public async Task<ConsultantCalendarModel> GetConsultantCalendar(int consultantId, int selectedMonth)
+        {
+            var response = await _httpClient.GetAsync($"/gateway/consultants/{consultantId}");
+            response.EnsureSuccessStatusCode();
 
+            string responseString = await response.Content.ReadAsStringAsync();
+            string responseJson = responseString.Replace("\\", "").Trim(new[] { '"' });
+
+            ConsultantCalendarModel consultantCalendarModel = JsonConvert.DeserializeObject<ConsultantCalendarModel>(responseJson);
+            return (consultantCalendarModel);
+        }
+
+        public async Task<List<AppointmentDetails>> GetAppointments(int consultantId, int selectedMonth)
+        {
+            var response = await _httpClient.GetAsync($"/gateway/bookings/{consultantId}-{selectedMonth}");
+            response.EnsureSuccessStatusCode();
+
+            string responseString = await response.Content.ReadAsStringAsync();
+            string responseJson = responseString.Replace("\\", "").Trim(new[] { '"' });
+
+            List<AppointmentDetails> consultantCalendarModel = JsonConvert.DeserializeObject<List<AppointmentDetails>>(responseJson);
+            return (consultantCalendarModel);
+        }
+
+        public async Task<int> CreateAppointment(BookingModel bookingModel)
+        {
+            var response = await _httpClient.PostAsJsonAsync("/gateway/bookings", bookingModel);
+            // response.EnsureSuccessStatusCode();
+
+            string responseString = await response.Content.ReadAsStringAsync();
+            int result = JsonConvert.DeserializeObject<int>(responseString);
+            return (result);
+        }
     }
 }
