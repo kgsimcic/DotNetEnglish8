@@ -30,19 +30,20 @@ namespace ConsultantCalendarMicroservice.Controllers
             return Ok(result);
         }
 
-        [HttpGet("consultants/{consultantId}")]
-        public async Task<ActionResult> GetConsultantCalendar(int consultantId, int selectedMonth = 3)
+        [HttpGet("consultants/{selectedMonth}")]
+        public async Task<ActionResult> GetConsultantCalendars(int selectedMonth = 3)
         {
-            _logger.LogInformation($"Connected to endpoint /consultants/{consultantId}! Retrieving requested consultant calendar.");
+            _logger.LogInformation($"Connected to endpoint /consultants/{selectedMonth}!");
 
             try
             {
-                ConsultantCalendarModel result = await _calendarService.GetConsultantCalendar(consultantId, selectedMonth);
+                List<ConsultantCalendarModel> result = await _calendarService.GetConsultantCalendars(selectedMonth);
                 return Ok(result);
             }
             catch (KeyNotFoundException)
             {
-                return NotFound($"A consultant with ID = {consultantId} was not found.");
+                // not sure if this will be needed.
+                return NotFound($"A consultant with ID was not found.");
             }
         }
     }

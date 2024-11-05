@@ -2,8 +2,6 @@ using BookingMicroservice.Entities;
 using BookingMicroservice.Services;
 using BookingMicroservice.Controllers;
 using Microsoft.EntityFrameworkCore;
-using SchedulingWorkerService;
-// using SchedulingWorkerService
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +16,6 @@ builder.Services.AddSwaggerGen();
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<BookingDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddTransient<IBookingService, BookingService>();
-builder.Services.AddScoped<BookingWorkerService>();
 
 var app = builder.Build();
 

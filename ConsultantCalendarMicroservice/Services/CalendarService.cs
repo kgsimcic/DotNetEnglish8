@@ -2,30 +2,42 @@
 using ConsultantCalendarMicroservice.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Metadata.Ecma335;
+using static Azure.Core.HttpHeader;
 
 namespace ConsultantCalendarMicroservice.Services
 {
     public class CalendarService : ICalendarService
     {
-        public ConsultantCalendarDbContext DbContext { get; set; }
+        private ConsultantCalendarDbContext _dbContext { get; set; }
 
         public CalendarService(ConsultantCalendarDbContext dbContext)
         {
-            DbContext = dbContext;
+            _dbContext = dbContext;
         }
 
-        public async Task<ConsultantCalendarModel> GetConsultantCalendar(int consultantId, int selectedMonth)
+        public async Task<List<ConsultantCalendarModel>> GetConsultantCalendars(int selectedMonth)
         {
-            List<DateTime> consultantAvailableDates = await DbContext.ConsultantCalendars
-                .Where(c => c.ConsultantId == consultantId && c.Date.Month == selectedMonth)
-                .Select(o => o.Date).ToListAsync();
+            var query = _dbContext.ConsultantCalendars
+                .Where(c => c.Date.Month == selectedMonth).GroupBy(c => c.ConsultantId);
 
-            ConsultantCalendarModel consultantCalendarModel = new ConsultantCalendarModel {
-                MonthId = selectedMonth,
-                ConsultantId = consultantId,
-                AvailableDates = consultantAvailableDates
+            var groupedConsultantCalendars = await query.ToListAsync();
+
+            List<ConsultantCalendarModel> consultantCalendarModels = new ();
+
+            foreach (var group in groupedConsultantCalendars)
+            {
+
+                int ConsultantId = group.Key;
+                List<DateTime> consultantAvailableDates = group.Select(c => c.Date).ToList();
+
+                consultantCalendarModels.Add(new ConsultantCalendarModel()
+                {
+                    MonthId = selectedMonth,
+                    ConsultantId = ConsultantId,
+                    AvailableDates = consultantAvailableDates
+                });
             };
-            return consultantCalendarModel;
+            return consultantCalendarModels;
         }
 
     }

@@ -5,6 +5,6 @@ namespace ConsultantCalendarMicroservice.Services
 {
     public interface ICalendarService
     {
-        public Task<ConsultantCalendarModel> GetConsultantCalendar(int consultantId, int selectedMonth);
+        public Task<List<ConsultantCalendarModel>> GetConsultantCalendars(int selectedMonth);
     }
 }

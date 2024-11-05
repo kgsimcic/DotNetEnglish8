@@ -2,7 +2,7 @@ using BookingMicroservice.Models;
 using Microsoft.AspNetCore.Mvc;
 using BookingMicroservice.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
-using SchedulingWorkerService;
+using Azure.Core;
 
 namespace BookingMicroservice.Controllers
 {
@@ -23,7 +23,7 @@ namespace BookingMicroservice.Controllers
         }
 
         [HttpPost("bookings")]
-        public async Task<ActionResult> CreateAppointment([FromBody]BookingModel bookingModel)
+        public async Task<ActionResult> QueueBooking([FromBody]BookingModel bookingModel)
         {
             _logger.LogInformation("BookingMS: Attempting to create appointment....");
             if (!ModelState.IsValid)
@@ -31,25 +31,39 @@ namespace BookingMicroservice.Controllers
                 return BadRequest(ModelState);
             }
 
-            int result = await _bookingService.CreateBooking(bookingModel);
-
-            if (result == 0)
-            {
-                return Conflict("This appointment is no longer available. Please refresh the page and try again.");
-            } else
-            {
-                return Created();
-            }
+            await Task.Run(() => _workerService.EnqueueBooking(bookingModel));
+            return Ok(bookingModel.Appointment.AppointmentId);
         }
 
-        [HttpGet("bookings/{consultantId}-{month}")]
-        public async Task<ActionResult> GetAppointments(int consultantId, int month)
+        [HttpGet("bookings/status/{id}")]
+        public async Task<ActionResult> GetBookingStatus(Guid id, int timeoutMs = 300)
         {
-            _logger.LogInformation($"BookingMS: Fetching Bookings for next {month} for consultant ID#{consultantId}....");
+            const int checkInterval = 100;
+            int elapsed = 0;
+
+            while (elapsed < timeoutMs)
+            {
+                var status = _workerService.GetBookingStatus(id);
+                if (status != "Queued" && status != "Processing")
+                {
+                    return Ok(new { BookingId = id, Status = status });
+                }
+
+                await Task.Delay(checkInterval);
+                elapsed += checkInterval;
+            }
+
+            return Ok(new { BookingId = id, Status = "Pending" });
+        }
+
+        [HttpGet("bookings/{month}")]
+        public async Task<ActionResult> GetAppointments(int month)
+        {
+            _logger.LogInformation($"BookingMS: Fetching Bookings for next {month}....");
             if (!ModelState.IsValid) {
                 return BadRequest(ModelState);
             }
-            return Ok(await _bookingService.GetBookings(consultantId, month));
+            return Ok(await _bookingService.GetBookings(month));
         }
     }
 }

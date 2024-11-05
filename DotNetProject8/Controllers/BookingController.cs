@@ -18,8 +18,28 @@ namespace DotNetProject8.Controllers
         public async Task<ActionResult> NewAppointment(int selectedConsultantId, string selectedConsultantName, DateTime selectedDate)
         {
             _logger.LogInformation("DN8: Redirecting to CreateBooking view...");
+            
+            // autofill current info
+
+            AppointmentDetails appointmentDetails = new(){
+                AppointmentDate = selectedDate
+            };
+            ConsultantDetails consultantDetails = new()
+            {
+                ConsultantId = selectedConsultantId,
+                ConsultantName = selectedConsultantName
+            };
+
+            BookingModel bookingModel = new()
+            {
+                Consultant = consultantDetails,
+                Appointment = appointmentDetails
+            };
+            ViewBag.BookingModel = bookingModel;
             return View("CreateBooking");
         }
+
+
 
         public async Task<ActionResult> ConfirmOrDenyAppointment([FromBody] BookingModel bookingModel)
         {

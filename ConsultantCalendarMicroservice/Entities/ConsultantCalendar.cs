@@ -7,7 +7,7 @@ public partial class ConsultantCalendar
 {
     public int Id { get; set; }
 
-    public int? ConsultantId { get; set; }
+    public int ConsultantId { get; set; }
 
     public DateTime Date { get; set; }
 

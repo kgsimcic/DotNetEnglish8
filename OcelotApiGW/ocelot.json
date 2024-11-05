@@ -16,9 +16,21 @@
       ]
     },
     {
-      "UpstreamPathTemplate": "/gateway/bookings/{consultantId}-{month}",
+      "UpstreamPathTemplate": "/gateway/bookings/status/{id}",
       "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/booking/bookings/{consultantId}-{month}",
+      "DownstreamPathTemplate": "/api/booking/bookings/status/{id}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8081
+        }
+      ]
+    },
+    {
+      "UpstreamPathTemplate": "/gateway/bookings/{month}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/api/booking/bookings/{month}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

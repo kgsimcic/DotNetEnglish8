@@ -1,0 +1,66 @@
+﻿@model DotNetProject8.Models.ConsultantModelList
+
+@{
+    ViewBag.Title = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section>
+    <label for="consultant">Select Consultant you wish to make an appointment for</label>
+    <div class="form-group">
+        @Html.DropDownListFor(m => m.SelectedConsultantId, Model.ConsultantsList, "- Please select -", new { @class = "form-control" })
+        @Html.ValidationMessageFor(m => m.SelectedConsultantId)
+    </div>
+
+</section>
+<section>
+    <div class="columns">
+    <div class="column-left">
+        <div id="nav"></div>
+    </div>
+        <div class="column-main">
+            <div id="calendarPicker"></div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        document.addEventListener("DOMContentLoaded", function () {
+            flatpickr("#calendarPicker", {
+                inline: true,
+                minDate: "@ViewBag.minDate",
+                maxDate: "@ViewBag.maxDate",
+                enable: [
+                    function (date) {
+                        // return true to enable
+
+                        return (date.getMonth() % 2 === 0 && date.getDate() < 15);
+
+                    }
+                ]
+            });
+        });
+
+        window.onload = function () {
+            showMonth();
+        };
+
+        function showMonth() {
+            var month = new Array();
+            month[0] = "January";
+            month[1] = "February";
+            month[2] = "March";
+            month[3] = "April";
+            month[4] = "May";
+            month[5] = "June";
+            month[6] = "July";
+            month[7] = "August";
+            month[8] = "September";
+            month[9] = "October";
+            month[10] = "November";
+            month[11] = "December";
+            var d = new Date();
+            var n = month[d.getMonth()];
+            document.getElementById("month_name").innerHTML = n;
+        }
+    </script>
+</section>
