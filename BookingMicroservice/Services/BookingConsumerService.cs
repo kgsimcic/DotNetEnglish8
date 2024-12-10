@@ -46,18 +46,34 @@ namespace BookingMicroservice.Services
                 await channel.QueueBindAsync(queueName, exchangeName, routingKey, null);
                 
                 var consumer = new AsyncEventingBasicConsumer(channel); 
-                consumer.ReceivedAsync += async (model, ea) => { 
-                    var body = ea.Body.ToArray();
-                    var message = Encoding.UTF8.GetString(body);
-                    var bookingModel = JsonConvert.DeserializeObject<BookingModel>(message);
+                consumer.ReceivedAsync += async (model, ea) => {
+                    try
+                    {
+                        var body = ea.Body.ToArray();
+                        var message = Encoding.UTF8.GetString(body);
+                        var bookingModel = JsonConvert.DeserializeObject<BookingModel>(message);
 
-                    using (var scope = _serviceProvider.CreateScope()) { 
-                        var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
-                        await bookingService.ProcessBookingAsync(bookingModel);
+                        using (var scope = _serviceProvider.CreateScope())
+                        {
+                            var bookingService = scope.ServiceProvider.GetRequiredService<IBookingService>();
+                            await bookingService.ProcessBookingAsync(bookingModel);
+                            _logger.LogDebug("What is going on?");
+                        }
+
+                        // temp error handling -- not sure if necessary. 
+                        if (channel.IsOpen)
+                        {
+                            await channel.BasicAckAsync(ea.DeliveryTag, false);
+                            _logger.LogDebug("Ack should have happened!");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Channel is not open, message not acknowledged.");
+                        }
+                    } catch (Exception ex) { 
+                        _logger.LogError($"Error processing message: {ex.Message}"); 
+                        { await channel.BasicNackAsync(ea.DeliveryTag, false, true); } 
                     }
-
-                    await channel.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
-                    _logger.LogDebug("Ack should have happened!");
                 }; 
                 
                 await channel.BasicConsumeAsync(

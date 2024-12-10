@@ -69,10 +69,12 @@ namespace BookingMicroservice.Services
                 Status = null
             };
 
-            // important logic
+            // Double Booking Logic
 
-            var possibleAppointments = await _dbContext.Appointments.Where(a => a.StartDateTime <= appointment.EndDateTime
-            && a.EndDateTime >= appointment.StartDateTime).ToListAsync();
+            var possibleAppointments = await _dbContext.Appointments.Where(
+                a => a.StartDateTime.Hour == appointment.StartDateTime.Hour &&
+                a.StartDateTime.Date == appointment.StartDateTime.Date).ToListAsync();
+
 
             if (possibleAppointments.Any())
             {
@@ -97,8 +99,8 @@ namespace BookingMicroservice.Services
 
             // FIX: need to send to associated sessionId only.
             // signalR response
-            var response = await httpClient.PostAsJsonAsync("https://localhost:5001/appointmentHub", appointmentStatusResponse);
-            response.EnsureSuccessStatusCode();
+/*            var response = await httpClient.PostAsJsonAsync("https://localhost:5001/appointmentHub", appointmentStatusResponse);
+            response.EnsureSuccessStatusCode();*/
         }
     }
 }

@@ -108,7 +108,7 @@ namespace DotNetProject8.Controllers
             else
             {
                 return View("AppointmentConfirmation");
-            };*/
-        }
+            };
+        }*/
     }
 }
