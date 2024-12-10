@@ -4,33 +4,9 @@
   },
   "Routes": [
     {
-      "UpstreamPathTemplate": "/gateway/bookings",
-      "UpstreamHttpMethod": [ "POST" ],
-      "DownstreamPathTemplate": "/api/booking/bookings",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 8081
-        }
-      ]
-    },
-    {
-      "UpstreamPathTemplate": "/gateway/bookings/status/{id}",
+      "UpstreamPathTemplate": "/gateway/bookings/{date}",
       "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/booking/bookings/status/{id}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 8081
-        }
-      ]
-    },
-    {
-      "UpstreamPathTemplate": "/gateway/bookings/{month}",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/api/booking/bookings/{month}",
+      "DownstreamPathTemplate": "/api/booking/bookings/{date}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {

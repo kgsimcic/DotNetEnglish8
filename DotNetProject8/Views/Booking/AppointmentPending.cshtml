@@ -1,8 +1,31 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-    ViewData["Title"] = "AppointmentPending";
-}
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Appointment Status</title>
+</head>
+<body>
+    <h1>Waiting for Appointment Status</h1>
+    <div id="status">Waiting...</div>
+    <script>
+        // Establish a connection to the hub 
+        const connection = new signalR.HubConnectionBuilder().withUrl("/appointmentHub").build(); 
+        
+        connection.start().then(() => { 
+            console.log("SignalR connected."); 
+        }).catch(err => console.error(err.toString()));
 
-<p>Appointment Confirmation Pending...</p>
+        const connectionId = connection.connectionId;
+
+        connection.on("ReceiveStatusUpdate", (appointmentDetails) => { 
+            if (appointmentDetails.userId === userId) {
+                document.getElementById("status").innerHTML = `Appointment for ${appointmentDetails.user} at ${appointmentDetails.appointmentTime} has ${appointmentDetails.status}`;
+                if (appointmentDetails.status === "Succeeded") {
+                    window.location.href = `Appointments/Success?appointmentId=${appointmentDetails.appointmentId}`;
+                } else {
+                    window.location.href = `Appointments/Failure?appointmentId=${appointmentDetails.appointmentId}`;
+                }
+            }
+            }); 
+    </script>
+</body>
+</html>

@@ -1,19 +1,39 @@
-﻿@model DotNetProject8.Models.BookingModel
+﻿@model DotNetProject8.Models.BookingRequestModel
+@addTagHelper*, Microsoft.AspNetCore.Mvc.TagHelpers
 
-@{
-    ViewData["Title"] = "CreateBooking";
-}
-
-<h1>View</h1>
-
-<h4>BookingModel</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-controller="Booking" asp-action="ConfirmOrDenyAppointment" method="post">
+        <form asp-controller="Booking" asp-action="EnqueueAppointment" method="post" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <div class="container">
+                    <h3>Appointment Details:</h3>
+                    <ul>
+                        <input type="hidden" name="Appointment.AppointmentDate" value=@Model.Appointment.AppointmentDate />
+                        <input type="hidden" name="Consultant.ConsultantId" value=@Model.Consultant.ConsultantId />
+                        <li>Consultant Name: @Model.Consultant.ConsultantName</li>
+                        <li>Specialty: @Model.Consultant.ConsultantSpeciality</li>
+                        <li>Appointment Time: @Html.DropDownListFor(m => m.Appointment.SelectedAppointmentTime, Model.Appointment.AppointmentTimes, new { @class = "form-control" })</li>
+                    </ul>
+                </div>
+                <div class="container">
+                    <h3>Patient Details:</h3>
+                    <ul>
+                        <li>Patient First Name: <input type="text" asp-for="Patient.PatientFName" /></li>
+                        <li>Patient Last Name: <input type="text" asp-for="Patient.PatientLName" /></li>
+                        <li>Phone: <input type="number" asp-for="Patient.ContactNumber" /></li>
+                    </ul>
+                    <br>
+                    <h6>Address:</h6>
+                    <ul>
+                        <li>Address Line 1: <input type="text" asp-for="Patient.AddressLine1" /> </li>
+                        <li>Address Line 2: <input type="text" asp-for="Patient.AddressLine2" /> </li>
+                        <li>City: <input type="text" asp-for="Patient.City" /> </li>
+                        <li>Zip Code: <input type="number" asp-for="Patient.Postcode" /> </li>
+                    </ul>
+                </div>
+                <input type="submit" value="Confirm Appointment" class="btn btn-primary" />
             </div>
         </form>
     </div>

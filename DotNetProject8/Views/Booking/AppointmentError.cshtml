@@ -1,5 +1,11 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewBag.Title = "AppointmentError";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<h2>Appointment Creation Failed</h2>
+
+<section>
+    <p>Appointment was unable to be created.</p>
+    <p>Id = @ViewBag.AppointmentDetails.Id</p>
+</section>

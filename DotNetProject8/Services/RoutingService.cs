@@ -1,5 +1,6 @@
 ﻿using DotNetProject8.Models;
 using Newtonsoft.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DotNetProject8.Services
 {
@@ -39,40 +40,18 @@ namespace DotNetProject8.Services
             return (consultantCalendarModels);
         }
 
-        public async Task<List<AppointmentDetails>> GetAppointments(int selectedMonth)
+        public async Task<List<AppointmentResponse>> GetAppointments(int consultantId, DateTime selectedDate)
         {
-            var response = await _httpClient.GetAsync($"/gateway/bookings/{selectedMonth}");
+            var dateString = selectedDate.ToString("yyyy-MM-ddTHH:mm:ssZ");
+            var response = await _httpClient.GetAsync($"/gateway/bookings/{dateString}");
             response.EnsureSuccessStatusCode();
 
             string responseString = await response.Content.ReadAsStringAsync();
             string responseJson = responseString.Replace("\\", "").Trim(new[] { '"' });
 
-            List<AppointmentDetails> consultantCalendarModel = JsonConvert.DeserializeObject<List<AppointmentDetails>>(responseJson);
+            List<AppointmentResponse> appointments = JsonConvert.DeserializeObject<List<AppointmentResponse>>(responseJson);
 
-            return (consultantCalendarModel);
-        }
-
-        public async Task<string> GetBookingStatus(Guid appointmentId)
-        {
-            var response = await _httpClient.GetAsync($"/gateway/bookings/status/{appointmentId}");
-            response.EnsureSuccessStatusCode();
-
-            string responseString = await response.Content.ReadAsStringAsync();
-            string responseJson = responseString.Replace("\\", "").Trim(new[] { '"' });
-
-            // edit later - going to be a string containing status. 
-            string bookingStatus = JsonConvert.DeserializeObject<string>(responseJson);
-            return (bookingStatus);
-        }
-
-        public async Task<Guid> CreateAppointment(BookingModel bookingModel)
-        {
-            var response = await _httpClient.PostAsJsonAsync("/gateway/bookings", bookingModel);
-            response.EnsureSuccessStatusCode();
-
-            string responseString = await response.Content.ReadAsStringAsync();
-            Guid appointmentId = JsonConvert.DeserializeObject<Guid>(responseString);
-            return (appointmentId);
+            return (appointments.FindAll(a => a.ConsultantId == consultantId));
         }
     }
 }

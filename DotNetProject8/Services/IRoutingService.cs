@@ -6,6 +6,7 @@ namespace DotNetProject8.Services
     {
         public Task<List<ConsultantModel>?> GetConsultantsAsync();
         public Task<List<ConsultantCalendarModel>?> GetConsultantCalendars(int selectedMonth);
+        public Task<List<AppointmentResponse>?> GetAppointments(int consultantId, DateTime selectedDate);
 
     }
 }

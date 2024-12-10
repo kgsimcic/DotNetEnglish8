@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using BookingMicroservice.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Azure.Core;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Microsoft.AspNetCore.Http;
 
 namespace BookingMicroservice.Controllers
 {
@@ -13,30 +15,15 @@ namespace BookingMicroservice.Controllers
 
         private readonly ILogger<BookingController> _logger;
         private readonly IBookingService _bookingService;
-        private readonly BookingWorkerService _workerService;
 
-        public BookingController(ILogger<BookingController> logger, IBookingService bookingService, BookingWorkerService bookingWorkerService)
+        public BookingController(ILogger<BookingController> logger, IBookingService bookingService)
         {
             _logger = logger;
             _bookingService = bookingService;
-            _workerService = bookingWorkerService;
         }
 
-        [HttpPost("bookings")]
-        public async Task<ActionResult> QueueBooking([FromBody]BookingModel bookingModel)
-        {
-            _logger.LogInformation("BookingMS: Attempting to create appointment....");
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            await Task.Run(() => _workerService.EnqueueBooking(bookingModel));
-            return Ok(bookingModel.Appointment.AppointmentId);
-        }
-
-        [HttpGet("bookings/status/{id}")]
-        public async Task<ActionResult> GetBookingStatus(Guid id, int timeoutMs = 300)
+        /*[HttpGet("bookings/status/{id}")]
+        public async Task<ActionResult> GetBookingStatus(int id, int timeoutMs = 300)
         {
             const int checkInterval = 100;
             int elapsed = 0;
@@ -54,16 +41,18 @@ namespace BookingMicroservice.Controllers
             }
 
             return Ok(new { BookingId = id, Status = "Pending" });
-        }
+        }*/
 
-        [HttpGet("bookings/{month}")]
-        public async Task<ActionResult> GetAppointments(int month)
+        [HttpGet("bookings/{date}")]
+        public async Task<ActionResult> GetAppointments(string date)
         {
-            _logger.LogInformation($"BookingMS: Fetching Bookings for next {month}....");
-            if (!ModelState.IsValid) {
+            _logger.LogInformation($"BookingMS: Fetching Bookings for {date}....");
+            if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
             }
-            return Ok(await _bookingService.GetBookings(month));
+            DateTime selectedDate = DateTimeOffset.Parse(date).Date;
+            return Ok(await _bookingService.GetBookings(selectedDate));
         }
     }
 }
