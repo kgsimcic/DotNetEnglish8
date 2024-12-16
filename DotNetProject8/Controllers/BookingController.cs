@@ -2,6 +2,7 @@
 using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 
 namespace DotNetProject8.Controllers
@@ -77,38 +78,41 @@ namespace DotNetProject8.Controllers
                     Appointment = appointmentRequestDetails,
                     Patient = new()
                 };
-                // ViewBag.BookingModel = bookingModel;
 
                 return View(bookingRequestModel);
             }
             return View();
         }
 
-        public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
+        private long GenerateUniqueId()
         {
+            int randomNumber = new Random().Next(1000, 9999);
+            string dateString = $"{DateTime.Now:yyyyMMddHHmmss}";
+            return Convert.ToInt64($"{dateString}{randomNumber}"); 
+        }
+
+            public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
+        {
+            bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
             if (!ModelState.IsValid)
             {
-                return View(bookingRequestModel);
+                return View("CreateBooking", bookingRequestModel);
             }
             _logger.LogInformation("DN8: Appointment Creation Requested. Passing to Booking Service...");
             await _producerService.EnqueueBookingAsync(bookingRequestModel);
+
+            ViewBag.AppointmentId = bookingRequestModel.Appointment.AppointmentId;
             return View("AppointmentPending");
         }
 
-        /*[HttpPost("status")]
-        public IActionResult ConfirmOrDenyAppointment([FromBody] AppointmentStatusResponse update)
+        public IActionResult Completed()
         {
-            ViewBag.AppointmentDate = update.AppointmentDate;
-            ViewBag.AppointmentTime = update.AppointmentTime;
+            return View("AppointmentConfirmation");
+        }
 
-            if (update.Status == "Failed")
-            {
-                return View("AppointmentError");
-            }
-            else
-            {
-                return View("AppointmentConfirmation");
-            };
-        }*/
+        public IActionResult Failed()
+        {
+            return View("AppointmentError");
+        }
     }
 }

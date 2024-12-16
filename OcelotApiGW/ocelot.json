@@ -16,6 +16,18 @@
       ]
     },
     {
+      "DownstreamPathTemplate": "/api/sse/status-updates/{appointmentId}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 8081
+        }
+      ],
+      "UpstreamPathTemplate": "/api/sse/status-updates/{appointmentId}",
+      "UpstreamHttpMethod": [ "GET" ]
+    },
+    {
       "UpstreamPathTemplate": "/gateway/consultants",
       "UpstreamHttpMethod": [ "GET" ],
       "DownstreamPathTemplate": "/api/consultantcalendar/consultants/",

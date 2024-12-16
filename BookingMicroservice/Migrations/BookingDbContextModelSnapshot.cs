@@ -17,7 +17,7 @@ namespace BookingMicroservice.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -30,19 +30,24 @@ namespace BookingMicroservice.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<long>("AppointmentUniqueId")
+                        .HasColumnType("bigint");
+
                     b.Property<int>("ConsultantId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime");
 
-                    b.Property<int>("PatientId")
+                    b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDateTime")
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointment", (string)null);
                 });
@@ -57,6 +62,7 @@ namespace BookingMicroservice.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address1")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)");
@@ -67,23 +73,27 @@ namespace BookingMicroservice.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Fname")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("FName");
 
                     b.Property<string>("Lname")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("LName");
 
                     b.Property<string>("Postcode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
@@ -91,6 +101,21 @@ namespace BookingMicroservice.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Patient", (string)null);
+                });
+
+            modelBuilder.Entity("BookingMicroservice.Entities.Appointment", b =>
+                {
+                    b.HasOne("BookingMicroservice.Entities.Patient", "Patient")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PatientId")
+                        .HasConstraintName("FK_Appointment_Patient");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("BookingMicroservice.Entities.Patient", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }

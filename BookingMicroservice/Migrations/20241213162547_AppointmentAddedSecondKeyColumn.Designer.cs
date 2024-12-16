@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingMicroservice.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
-    [Migration("20241018145052_UpdatePatientNames")]
-    partial class UpdatePatientNames
+    [Migration("20241213162547_AppointmentAddedSecondKeyColumn")]
+    partial class AppointmentAddedSecondKeyColumn
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -33,73 +33,26 @@ namespace BookingMicroservice.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ConsultantId")
+                    b.Property<long>("AppointmentUniqueId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ConsultantId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("EndDateTime")
+                    b.Property<DateTime>("EndDateTime")
                         .HasColumnType("datetime");
 
                     b.Property<int?>("PatientId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("StartDateTime")
+                    b.Property<DateTime>("StartDateTime")
                         .HasColumnType("datetime");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("Appointment", (string)null);
-                });
-
-            modelBuilder.Entity("BookingMicroservice.Entities.Consultant", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Fname")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("FName");
-
-                    b.Property<string>("Lname")
-                        .HasMaxLength(100)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("LName");
-
-                    b.Property<string>("Speciality")
-                        .HasMaxLength(50)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Consultant", (string)null);
-                });
-
-            modelBuilder.Entity("BookingMicroservice.Entities.ConsultantCalendar", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool?>("Available")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("ConsultantId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("Date")
-                        .HasColumnType("datetime");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ConsultantCalendar", (string)null);
                 });
 
             modelBuilder.Entity("BookingMicroservice.Entities.Patient", b =>
@@ -112,6 +65,7 @@ namespace BookingMicroservice.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Address1")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .IsUnicode(false)
                         .HasColumnType("varchar(255)");
@@ -122,23 +76,27 @@ namespace BookingMicroservice.Migrations
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("City")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)");
 
                     b.Property<string>("Fname")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("FName");
 
                     b.Property<string>("Lname")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .IsUnicode(false)
                         .HasColumnType("varchar(50)")
                         .HasColumnName("LName");
 
                     b.Property<string>("Postcode")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .IsUnicode(false)
                         .HasColumnType("varchar(10)");
@@ -146,6 +104,21 @@ namespace BookingMicroservice.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Patient", (string)null);
+                });
+
+            modelBuilder.Entity("BookingMicroservice.Entities.Appointment", b =>
+                {
+                    b.HasOne("BookingMicroservice.Entities.Patient", "Patient")
+                        .WithMany("Appointments")
+                        .HasForeignKey("PatientId")
+                        .HasConstraintName("FK_Appointment_Patient");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("BookingMicroservice.Entities.Patient", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }

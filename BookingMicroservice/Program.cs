@@ -7,6 +7,12 @@ using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options => { 
+    options.AddPolicy("AllowAll", builder => { 
+        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); 
+    }); 
+});
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,11 +23,11 @@ builder.Services.AddSingleton<RabbitMQ.Client.IConnectionFactory, ConnectionFact
 {
     HostName = "localhost"
 });
+builder.Services.AddSingleton<SseService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddHostedService<BookingConsumerService>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -31,7 +37,11 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseCors("AllowAll");
 
 app.MapControllers();
+app.MapGet("/api/sse/status-updates/{appointmentId}", async (long appointmentId, HttpResponse response, SseService sseService) => { 
+    await sseService.SubscribeAsync(appointmentId, response); 
+});
 
 app.Run();

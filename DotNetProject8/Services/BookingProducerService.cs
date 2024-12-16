@@ -39,6 +39,7 @@ namespace DotNetProject8.Services
 
             AppointmentDetails appointment = new()
             {
+                AppointmentId = bookingRequestModel.Appointment.AppointmentId,
                 AppointmentDate = bookingRequestModel.Appointment.AppointmentDate,
                 AppointmentTime = bookingRequestModel.Appointment.SelectedAppointmentTime,
                 ConsultantId = bookingRequestModel.Consultant.ConsultantId
@@ -79,8 +80,7 @@ namespace DotNetProject8.Services
                         body: body
                         );
 
-                    // placeholder for sessionId
-                    Console.WriteLine(" [x] Sent {0}", 0);
+                    _logger.LogInformation($" [x] Sent {appointment.AppointmentId}");
                 }
             }
         }

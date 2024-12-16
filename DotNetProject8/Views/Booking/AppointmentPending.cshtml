@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var appointmentId = ViewBag.AppointmentId;
+}
+<!DOCTYPE html>
 <html>
 <head>
     <title>Appointment Status</title>
@@ -7,25 +10,27 @@
     <h1>Waiting for Appointment Status</h1>
     <div id="status">Waiting...</div>
     <script>
-        // Establish a connection to the hub 
-        const connection = new signalR.HubConnectionBuilder().withUrl("/appointmentHub").build(); 
-        
-        connection.start().then(() => { 
-            console.log("SignalR connected."); 
-        }).catch(err => console.error(err.toString()));
+        document.addEventListener("DOMContentLoaded", function () { 
+            const appointmentId = '@Html.Raw(ViewBag.AppointmentId)';
+            console.log(appointmentId);
+            const eventSource = new EventSource(`http://localhost:5001/api/sse/status-updates/${appointmentId}`); 
 
-        const connectionId = connection.connectionId;
+            eventSource.onmessage = function(event) { 
+                const appointmentStatusResponse = JSON.parse(event.data); 
+                console.log('Appointment update received:', appointmentStatusResponse);
 
-        connection.on("ReceiveStatusUpdate", (appointmentDetails) => { 
-            if (appointmentDetails.userId === userId) {
-                document.getElementById("status").innerHTML = `Appointment for ${appointmentDetails.user} at ${appointmentDetails.appointmentTime} has ${appointmentDetails.status}`;
-                if (appointmentDetails.status === "Succeeded") {
-                    window.location.href = `Appointments/Success?appointmentId=${appointmentDetails.appointmentId}`;
-                } else {
-                    window.location.href = `Appointments/Failure?appointmentId=${appointmentDetails.appointmentId}`;
+                if (appointmentStatusResponse.Status === 'Completed') {
+                    window.location.href = '/Booking/Completed'; 
+                } else if (appointmentStatusResponse.Status === 'Failed') {
+                    window.location.href = '/Booking/Failed'; 
                 }
-            }
-            }); 
+            }; 
+            eventSource.onerror = function(error) { 
+                console.error('Error receiving status updates:', error); 
+            };
+            window.addEventListener('beforeunload', function() { 
+                eventSource.close(); 
+            }); });
     </script>
 </body>
 </html>

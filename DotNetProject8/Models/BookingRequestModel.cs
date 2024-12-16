@@ -18,6 +18,7 @@ namespace DotNetProject8.Models
     [BindProperties]
     public class AppointmentRequestDetails
     {
+        public long AppointmentId { get; set; }
         public DateTime AppointmentDate { get; set; } = new DateTime();
         public SelectList? AppointmentTimes { get; set; }
         public DateTime SelectedAppointmentTime { get; set; }

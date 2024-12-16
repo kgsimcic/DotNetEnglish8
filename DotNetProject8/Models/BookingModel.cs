@@ -8,13 +8,13 @@ namespace DotNetProject8.Models
 {
     public class BookingModel
     {
-        public int SessionId { get; set; }
         public PatientDetails Patient { get; set; } = new PatientDetails();
         public AppointmentDetails Appointment { get; set; } = new AppointmentDetails();
     }
 
     public class AppointmentDetails
     {
+        public long AppointmentId { get; set; }
         public DateTime AppointmentDate { get; set; } = new DateTime();
         public DateTime AppointmentTime { get; set; } = new DateTime();
         public int ConsultantId { get; set; } = new int();

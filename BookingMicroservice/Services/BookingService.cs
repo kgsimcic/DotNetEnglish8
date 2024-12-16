@@ -1,23 +1,25 @@
 ﻿using BookingMicroservice.Entities;
 using BookingMicroservice.Models;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Net.Http;
 using System.Xml;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace BookingMicroservice.Services
 {
     public class BookingService : IBookingService
     {
-        private BookingDbContext _dbContext;
+        private readonly BookingDbContext _dbContext;
         private readonly ILogger<BookingService> _logger;
-        private static readonly HttpClient httpClient = new HttpClient();
+        private static readonly HttpClient httpClient = new ();
+        private readonly SseService _sseService;
 
-        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext)
+        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, SseService sseService)
         {
             _logger = logger;
             _dbContext = dbContext;
+            _sseService = sseService;
         }
 
         public async Task<IEnumerable<AppointmentDetails>> GetBookings(DateTime selectedDate)
@@ -33,13 +35,11 @@ namespace BookingMicroservice.Services
             });
         }
 
-        // FIX! 
         public async Task ProcessBookingAsync(BookingModel bookingModel)
         {
-
             DateTime appointmentTime = bookingModel.Appointment.AppointmentTime;
 
-            Patient patient = new Patient
+            Patient patient = new ()
             {
                 Fname = bookingModel.Patient.PatientFName,
                 Lname = bookingModel.Patient.PatientLName,
@@ -49,27 +49,21 @@ namespace BookingMicroservice.Services
                 Postcode = bookingModel.Patient.Postcode
             };
 
-            Appointment appointment = new Appointment
+            Appointment appointment = new ()
             {
                 StartDateTime = appointmentTime,
                 EndDateTime = appointmentTime.AddHours(1),
                 ConsultantId = bookingModel.Appointment.ConsultantId,
                 PatientId = patient.Id,
+                AppointmentUniqueId = bookingModel.Appointment.AppointmentId,
                 Patient = patient
             };
 
-            // FIX: session Id.
-            int sessionId = 1;
-
-            // response stuff 
-
             AppointmentStatusResponse appointmentStatusResponse = new()
             {
-                AppointmentId = sessionId,
+                AppointmentId = appointment.AppointmentUniqueId,
                 Status = null
             };
-
-            // Double Booking Logic
 
             var possibleAppointments = await _dbContext.Appointments.Where(
                 a => a.StartDateTime.Hour == appointment.StartDateTime.Hour &&
@@ -78,7 +72,7 @@ namespace BookingMicroservice.Services
 
             if (possibleAppointments.Any())
             {
-                _logger.LogInformation($"Error: Appointment #{sessionId} failed - Double Booking.");
+                _logger.LogInformation($"Error: Appointment #{appointment.AppointmentUniqueId} failed - Double Booking.");
                 appointmentStatusResponse.Status = "Failed";
             }
             else
@@ -92,15 +86,12 @@ namespace BookingMicroservice.Services
                 }
                 else
                 {
-                    _logger.LogInformation($"Appointment #{sessionId} completed.");
+                    _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} completed.");
                     appointmentStatusResponse.Status = "Completed";
                 }
             }
 
-            // FIX: need to send to associated sessionId only.
-            // signalR response
-/*            var response = await httpClient.PostAsJsonAsync("https://localhost:5001/appointmentHub", appointmentStatusResponse);
-            response.EnsureSuccessStatusCode();*/
+            await _sseService.SendUpdateAsync(appointment.AppointmentUniqueId, appointmentStatusResponse);
         }
     }
 }
