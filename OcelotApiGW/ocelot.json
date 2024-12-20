@@ -16,7 +16,7 @@
       ]
     },
     {
-      "DownstreamPathTemplate": "/api/sse/status-updates/{appointmentId}",
+      "DownstreamPathTemplate": "/api/sse/{appointmentId}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -24,7 +24,7 @@
           "Port": 8081
         }
       ],
-      "UpstreamPathTemplate": "/api/sse/status-updates/{appointmentId}",
+      "UpstreamPathTemplate": "/api/sse/{appointmentId}",
       "UpstreamHttpMethod": [ "GET" ]
     },
     {

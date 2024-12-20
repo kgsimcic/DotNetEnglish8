@@ -13,6 +13,7 @@ builder.Services.AddCors(options => {
     }); 
 });
 
+builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -40,7 +41,7 @@ app.UseAuthorization();
 app.UseCors("AllowAll");
 
 app.MapControllers();
-app.MapGet("/api/sse/status-updates/{appointmentId}", async (long appointmentId, HttpResponse response, SseService sseService) => { 
+app.MapGet("/api/sse/{appointmentId}", async (long appointmentId, HttpResponse response, SseService sseService) => { 
     await sseService.SubscribeAsync(appointmentId, response); 
 });
 

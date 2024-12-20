@@ -2,6 +2,7 @@
 using BookingMicroservice.Models;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using System.Data;
 using System.Net.Http;
 using System.Xml;
@@ -12,14 +13,15 @@ namespace BookingMicroservice.Services
     {
         private readonly BookingDbContext _dbContext;
         private readonly ILogger<BookingService> _logger;
-        private static readonly HttpClient httpClient = new ();
         private readonly SseService _sseService;
+        private readonly IMemoryCache _memoryCache;
 
-        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, SseService sseService)
+        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, SseService sseService, IMemoryCache memoryCache)
         {
             _logger = logger;
             _dbContext = dbContext;
             _sseService = sseService;
+            _memoryCache = memoryCache;
         }
 
         public async Task<IEnumerable<AppointmentDetails>> GetBookings(DateTime selectedDate)
@@ -33,6 +35,19 @@ namespace BookingMicroservice.Services
                 AppointmentTime = a.StartDateTime,
                 ConsultantId = a.ConsultantId
             });
+        }
+
+        public async Task<int> GetAppointmentCountAsync(string cacheKey, DateTime startDateTime)
+        {
+            if (!_memoryCache.TryGetValue(cacheKey, out int count))
+            {
+                count = await _dbContext.Appointments.CountAsync(
+                a => a.StartDateTime.Hour == startDateTime.Hour &&
+                a.StartDateTime.Date == startDateTime.Date);
+                /*var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)); 
+                _memoryCache.Set(cacheKey, count, cacheEntryOptions); */
+            }
+            return count; 
         }
 
         public async Task ProcessBookingAsync(BookingModel bookingModel)
@@ -65,18 +80,20 @@ namespace BookingMicroservice.Services
                 Status = null
             };
 
-            var possibleAppointments = await _dbContext.Appointments.Where(
-                a => a.StartDateTime.Hour == appointment.StartDateTime.Hour &&
-                a.StartDateTime.Date == appointment.StartDateTime.Date).ToListAsync();
+            string key = $"AppointmentCount_{appointment.StartDateTime:yyyyMMddHHmm}";
+            int count = await GetAppointmentCountAsync(key, appointment.StartDateTime);
 
-
-            if (possibleAppointments.Any())
+            if (count > 0)
             {
-                _logger.LogInformation($"Error: Appointment #{appointment.AppointmentUniqueId} failed - Double Booking.");
+                var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10));
+                _memoryCache.Set(key, count, cacheEntryOptions);
+
+                _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} blocked due to double Booking.");
                 appointmentStatusResponse.Status = "Failed";
             }
             else
             {
+                _memoryCache.Remove(key);
                 await _dbContext.Appointments.AddAsync(appointment);
                 int result = await _dbContext.SaveChangesAsync();
                 if (result == 0)
@@ -86,7 +103,7 @@ namespace BookingMicroservice.Services
                 }
                 else
                 {
-                    _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} completed.");
+                    _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} booked.");
                     appointmentStatusResponse.Status = "Completed";
                 }
             }

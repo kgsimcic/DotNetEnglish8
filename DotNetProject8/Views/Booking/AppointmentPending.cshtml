@@ -13,7 +13,7 @@
         document.addEventListener("DOMContentLoaded", function () { 
             const appointmentId = '@Html.Raw(ViewBag.AppointmentId)';
             console.log(appointmentId);
-            const eventSource = new EventSource(`http://localhost:5001/api/sse/status-updates/${appointmentId}`); 
+            const eventSource = new EventSource(`http://localhost:5001/api/sse/${appointmentId}`); 
 
             eventSource.onmessage = function(event) { 
                 const appointmentStatusResponse = JSON.parse(event.data); 

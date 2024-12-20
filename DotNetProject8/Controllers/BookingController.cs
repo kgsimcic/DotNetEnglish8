@@ -21,6 +21,7 @@ namespace DotNetProject8.Controllers
             _producerService = producerService;
         }
 
+
         public IActionResult RedirectUrl([FromBody] BookingRequest bookingRequest)
         {
             _logger.LogInformation("DN8: Getting url...");
@@ -91,7 +92,7 @@ namespace DotNetProject8.Controllers
             return Convert.ToInt64($"{dateString}{randomNumber}"); 
         }
 
-            public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
+        public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
         {
             bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
             if (!ModelState.IsValid)
@@ -103,6 +104,20 @@ namespace DotNetProject8.Controllers
 
             ViewBag.AppointmentId = bookingRequestModel.Appointment.AppointmentId;
             return View("AppointmentPending");
+        }
+
+        // For testing only: call via api endpoint. 
+        [HttpPost("Appointments")]
+        public async Task<IActionResult> ApiEnqueueAppointment([FromBody] BookingRequestModel bookingRequestModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Modelstate invalid!");
+            }
+            _logger.LogInformation("DN8: Appointment Creation Requested via API. Passing to Booking Service...");
+            await _producerService.EnqueueBookingAsync(bookingRequestModel);
+
+            return Ok();
         }
 
         public IActionResult Completed()
