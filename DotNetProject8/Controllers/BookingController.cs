@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DotNetProject8.Controllers
 {
@@ -21,80 +22,28 @@ namespace DotNetProject8.Controllers
             _producerService = producerService;
         }
 
-
-        public IActionResult RedirectUrl([FromBody] BookingRequest bookingRequest)
-        {
-            _logger.LogInformation("DN8: Getting url...");
-
-            TempData["Date"] = JsonConvert.SerializeObject(bookingRequest.Date);
-            TempData["Consultant"] = JsonConvert.SerializeObject(bookingRequest.Consultant);
-
-            var url = Url.Action("CreateBooking", "Booking");
-            return Json(new { url });
-        }
-
-        public async Task<IActionResult> CreateBooking()
+        public async Task<IActionResult> CreateBooking([FromBody] BookingRequest bookingRequest)
         {
             _logger.LogInformation("DN8: Redirecting to CreateBooking view...");
 
-            if (TempData["Date"] != null && TempData["Consultant"] != null)
-            {
+            List<AppointmentResponse> appointments = await _routingService.GetAppointments(bookingRequest.Consultant.Id, bookingRequest.Date);
+            List<DateTime> takenAppointmentTimes = appointments.Select(a => a.AppointmentTime).ToList();
 
-                DateTime date = JsonConvert.DeserializeObject<DateTime>(TempData["Date"].ToString());
-                ConsultantModel consultant = JsonConvert.DeserializeObject<ConsultantModel>(TempData["Consultant"].ToString());
+            BookingRequestModel bookingRequestModel = _producerService.CreateBookingModel(bookingRequest.Date, bookingRequest.Consultant, takenAppointmentTimes);
 
-                List<AppointmentResponse> appointments = await _routingService.GetAppointments(consultant.Id, date);
-                List<DateTime> takenAppointmentTimes = appointments.Select(a => a.AppointmentTime).ToList();
-
-                List<DateTime> appointmentTimes = new();
-
-                DateTime startTime = date.AddHours(8);
-
-                for (int i = 0; i < 10; i++)
-                {
-                    if (!takenAppointmentTimes.Contains(startTime.AddHours(i)))
-                    {
-                        DateTime test = startTime.AddHours(i);
-                        appointmentTimes.Add(test);
-                    }
-                }
-
-                AppointmentRequestDetails appointmentRequestDetails = new()
-                {
-                    AppointmentDate = date,
-                    AppointmentTimes = new SelectList(appointmentTimes),
-                    SelectedAppointmentTime = appointmentTimes.Min()
-                };
-
-                ConsultantRequestDetails consultantRequestDetails = new()
-                {
-                    ConsultantId = consultant.Id,
-                    ConsultantName = consultant.Fname + ' ' + consultant.Lname,
-                    ConsultantSpeciality = consultant.Speciality
-                };
-
-                BookingRequestModel bookingRequestModel = new()
-                {
-                    Consultant = consultantRequestDetails,
-                    Appointment = appointmentRequestDetails,
-                    Patient = new()
-                };
-
-                return View(bookingRequestModel);
-            }
-            return View();
+            return View(bookingRequestModel);
         }
 
-        private long GenerateUniqueId()
+/*        private long GenerateUniqueId()
         {
             int randomNumber = new Random().Next(1000, 9999);
             string dateString = $"{DateTime.Now:yyyyMMddHHmmss}";
             return Convert.ToInt64($"{dateString}{randomNumber}"); 
-        }
+        }*/
 
         public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
         {
-            bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
+            // bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
             if (!ModelState.IsValid)
             {
                 return View("CreateBooking", bookingRequestModel);
@@ -102,7 +51,7 @@ namespace DotNetProject8.Controllers
             _logger.LogInformation("DN8: Appointment Creation Requested. Passing to Booking Service...");
             await _producerService.EnqueueBookingAsync(bookingRequestModel);
 
-            ViewBag.AppointmentId = bookingRequestModel.Appointment.AppointmentId;
+            // ViewBag.AppointmentId = bookingRequestModel.Appointment.AppointmentId;
             return View("AppointmentPending");
         }
 

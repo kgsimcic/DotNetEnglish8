@@ -42,21 +42,17 @@
                     var consultants = @Html.Raw(JsonConvert.SerializeObject(Model.Consultants));
                     var selectedConsultant = consultants.find(c => c.Id == consultantId.value);
 
-                    fetch('/Booking/RedirectUrl', {
+                    fetch('/Booking/CreateBooking', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             date: dateStr,
                             consultant: selectedConsultant
                         })
-                    }).then(response => response.json())
-                        .then(data => {
-                            if (data.url) {
-                                window.location.href = data.url;
-                            } else {
-                                console.error('No URL returned from server');
-                            }
-                        }).catch(error => console.error('Error:', error));
+                    }).then(response => response.text())
+                        .then(html => {
+                            document.body.innerHTML = html;
+                        });
                 },
                 defaultDate: new Date("@ViewBag.minDate"),
                 minDate: new Date("@ViewBag.minDate"),
