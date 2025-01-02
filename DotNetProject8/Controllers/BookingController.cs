@@ -2,6 +2,7 @@
 using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
 using static System.Runtime.InteropServices.JavaScript.JSType;
@@ -14,12 +15,14 @@ namespace DotNetProject8.Controllers
         private readonly ILogger<BookingController> _logger;
         private readonly IRoutingService _routingService;
         private readonly BookingProducerService _producerService;
+        private readonly SignalRService _signalRService;
 
-        public BookingController(ILogger<BookingController> logger, IRoutingService routingService, BookingProducerService producerService)
+        public BookingController(ILogger<BookingController> logger, IRoutingService routingService, BookingProducerService producerService, SignalRService signalRService)
         {
             _logger = logger;
             _routingService = routingService;
             _producerService = producerService;
+            _signalRService = signalRService;
         }
 
         public async Task<IActionResult> CreateBooking([FromBody] BookingRequest bookingRequest)
@@ -34,16 +37,23 @@ namespace DotNetProject8.Controllers
             return View(bookingRequestModel);
         }
 
-/*        private long GenerateUniqueId()
-        {
-            int randomNumber = new Random().Next(1000, 9999);
-            string dateString = $"{DateTime.Now:yyyyMMddHHmmss}";
-            return Convert.ToInt64($"{dateString}{randomNumber}"); 
-        }*/
+        [HttpGet] 
+        public async Task<IActionResult> GetConnectionId() { 
+            var connectionId = _signalRService.GetConnectionId(); 
+            return Json(new { connectionId }); 
+        }
+
+        /*        private long GenerateUniqueId()
+                {
+                    int randomNumber = new Random().Next(1000, 9999);
+                    string dateString = $"{DateTime.Now:yyyyMMddHHmmss}";
+                    return Convert.ToInt64($"{dateString}{randomNumber}"); 
+                }*/
 
         public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
         {
             // bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
+            bookingRequestModel.Appointment.ConnectionId = await _signalRService.GetConnectionId();
             if (!ModelState.IsValid)
             {
                 return View("CreateBooking", bookingRequestModel);
@@ -59,6 +69,7 @@ namespace DotNetProject8.Controllers
         [HttpPost("Appointments")]
         public async Task<IActionResult> ApiEnqueueAppointment([FromBody] BookingRequestModel bookingRequestModel)
         {
+            bookingRequestModel.Appointment.ConnectionId = await _signalRService.GetConnectionId();
             if (!ModelState.IsValid)
             {
                 return BadRequest("Modelstate invalid!");

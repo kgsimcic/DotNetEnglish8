@@ -70,7 +70,7 @@ namespace DotNetProject8.Services
         public async Task EnqueueBookingAsync(BookingRequestModel bookingRequestModel)
         {
 
-            string connectionId = await _signalRService.StartConnectionAsync();
+            string connectionId = await _signalRService.GetConnectionId();
             _logger.LogInformation($"ConnectionId started: {connectionId}");
 
 

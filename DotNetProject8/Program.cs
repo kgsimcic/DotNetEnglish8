@@ -7,6 +7,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IRoutingService, RoutingService>();
 builder.Services.AddTransient<BookingProducerService>();
+builder.Services.AddScoped<SignalRService>();
 
 var app = builder.Build();
 

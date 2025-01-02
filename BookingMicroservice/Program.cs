@@ -51,6 +51,6 @@ app.MapGet("/api/sse/{appointmentId}", async (long appointmentId, HttpResponse r
 {
     await sseService.SubscribeAsync(appointmentId, response);
 });
-// app.MapHub<AppointmentHub>("/appointmentHub"); // Map the SignalR hub
+app.MapHub<AppointmentHub>("/appointmentHub"); // Map the SignalR hub
 
 app.Run();
