@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -6,6 +7,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace DotNetProject8Tests
 {
@@ -18,7 +20,34 @@ namespace DotNetProject8Tests
 
     public class LoadTest
     {
-        private static readonly HttpClient client = new();
+        private HttpClient _sseClient;
+        private HttpClient _client;
+
+
+        public LoadTest()
+        {
+            var services = new ServiceCollection();
+
+            // Register IHttpClientFactory and configure an HttpClient
+            services.AddHttpClient("sseClient", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:5001");
+                client.Timeout = TimeSpan.FromSeconds(300);
+            });
+
+            services.AddHttpClient("client", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:5207");
+                client.Timeout = TimeSpan.FromSeconds(300);
+            });
+
+            var serviceProvider = services.BuildServiceProvider();
+            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+
+            // Act: Use the factory to create an HttpClient and make a call
+            _sseClient = httpClientFactory.CreateClient("sseClient");
+            _client = httpClientFactory.CreateClient("client");
+        }
 
         private string GenerateUniqueId()
         {
@@ -29,9 +58,9 @@ namespace DotNetProject8Tests
 
         private async Task PollSSE(ConcurrentBag<string> bag, string appointmentId)
         {
-            var sseUrl = $"http://localhost:5001/api/sse/{appointmentId}";
+            var sseUrl = $"/api/sse/{appointmentId}";
 
-            var responseStream = await client.GetStreamAsync(sseUrl);
+            var responseStream = await _sseClient.GetStreamAsync(sseUrl);
             using var reader = new StreamReader(responseStream);
             string line; 
             while ((line = await reader.ReadLineAsync()) != null)
@@ -75,7 +104,7 @@ namespace DotNetProject8Tests
 
             var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
 
-            var response = await client.PostAsync($"http://localhost:5207/Appointments", content);
+            var response = await _client.PostAsync($"Appointments", content);
             bag.Add(response.IsSuccessStatusCode);
             if (!response.IsSuccessStatusCode)
             {
@@ -86,7 +115,7 @@ namespace DotNetProject8Tests
         [Fact]
         public async Task SimulateConcurrentClients()
         {
-            int clientCount = 200;
+            int clientCount = 500;
             Console.WriteLine("Testing 3000 concurrent requests with the same appointment; so it should have 2999 double bookings.");
 
             ConcurrentBag<bool> httpBag = [];

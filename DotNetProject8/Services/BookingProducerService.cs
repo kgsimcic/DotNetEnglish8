@@ -24,7 +24,6 @@ namespace DotNetProject8.Services
         public BookingProducerService(ILogger<BookingProducerService> logger, SignalRService signalRService)
         {
             _logger = logger;
-            _signalRService = signalRService;
         }
 
         public BookingRequestModel CreateBookingModel(DateTime date, ConsultantModel consultant, List<DateTime> takenAppointmentTimes)
@@ -70,10 +69,6 @@ namespace DotNetProject8.Services
         public async Task EnqueueBookingAsync(BookingRequestModel bookingRequestModel)
         {
 
-            string connectionId = await _signalRService.GetConnectionId();
-            _logger.LogInformation($"ConnectionId started: {connectionId}");
-
-
             PatientDetails patient = new()
             {
                 PatientFName = bookingRequestModel.Patient.PatientFName,
@@ -87,7 +82,7 @@ namespace DotNetProject8.Services
 
             AppointmentDetails appointment = new()
             {
-                ConnectionId = connectionId,
+                ConnectionId = bookingRequestModel.Appointment.ConnectionId,
                 AppointmentDate = bookingRequestModel.Appointment.AppointmentDate,
                 AppointmentTime = bookingRequestModel.Appointment.SelectedAppointmentTime,
                 ConsultantId = bookingRequestModel.Consultant.ConsultantId

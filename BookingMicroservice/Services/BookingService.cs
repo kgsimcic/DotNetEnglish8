@@ -1,6 +1,5 @@
 ﻿using BookingMicroservice.Entities;
 using BookingMicroservice.Models;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Data;
@@ -13,14 +12,16 @@ namespace BookingMicroservice.Services
     {
         private readonly BookingDbContext _dbContext;
         private readonly ILogger<BookingService> _logger;
-        private readonly SseService _sseService;
+        // private readonly SseService _sseService;
+        // private readonly IHubContext _hubContext;
         private readonly IMemoryCache _memoryCache;
 
-        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, SseService sseService, IMemoryCache memoryCache)
+        public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, IMemoryCache memoryCache)
         {
             _logger = logger;
             _dbContext = dbContext;
-            _sseService = sseService;
+            // _sseService = sseService;
+            // _hubContext = hubContext;
             _memoryCache = memoryCache;
         }
 
@@ -50,7 +51,7 @@ namespace BookingMicroservice.Services
             return count; 
         }
 
-        public async Task ProcessBookingAsync(BookingModel bookingModel)
+        public async Task<string> ProcessBookingAsync(BookingModel bookingModel)
         {
             DateTime appointmentTime = bookingModel.Appointment.AppointmentTime;
 
@@ -70,15 +71,19 @@ namespace BookingMicroservice.Services
                 EndDateTime = appointmentTime.AddHours(1),
                 ConsultantId = bookingModel.Appointment.ConsultantId,
                 PatientId = patient.Id,
-                AppointmentUniqueId = bookingModel.Appointment.AppointmentId,
+                // Temp: if connection Id maps correctly then i can delete this. 
+                AppointmentUniqueId = 1000L,
                 Patient = patient
             };
 
-            AppointmentStatusResponse appointmentStatusResponse = new()
+            /*AppointmentStatusResponse appointmentStatusResponse = new()
             {
                 AppointmentId = appointment.AppointmentUniqueId,
                 Status = null
-            };
+            };*/
+
+            string connectionId = bookingModel.Appointment.ConnectionId;
+            string status;
 
             string key = $"AppointmentCount_{appointment.StartDateTime:yyyyMMddHHmm}";
             int count = await GetAppointmentCountAsync(key, appointment.StartDateTime);
@@ -88,8 +93,8 @@ namespace BookingMicroservice.Services
                 var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10));
                 _memoryCache.Set(key, count, cacheEntryOptions);
 
-                _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} blocked due to double Booking.");
-                appointmentStatusResponse.Status = "Failed";
+                _logger.LogInformation($"Appointment #{connectionId} blocked due to double Booking.");
+                status = "Failed";
             }
             else
             {
@@ -99,16 +104,18 @@ namespace BookingMicroservice.Services
                 if (result == 0)
                 {
                     _logger.LogInformation("SaveChangesAsync Failed in BookingDbContext. Why???");
-                    appointmentStatusResponse.Status = "Failed";
+                    status = "Failed";
                 }
                 else
                 {
-                    _logger.LogInformation($"Appointment #{appointment.AppointmentUniqueId} booked.");
-                    appointmentStatusResponse.Status = "Completed";
+                    _logger.LogInformation($"Appointment #{connectionId} booked.");
+                    status = "Completed";
                 }
             }
 
-            await _sseService.SendUpdateAsync(appointment.AppointmentUniqueId, appointmentStatusResponse);
+            // await _sseService.SendUpdateAsync(appointment.AppointmentUniqueId, appointmentStatusResponse);
+            // await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveStatusUpdate", status);
+            return status;
         }
     }
 }

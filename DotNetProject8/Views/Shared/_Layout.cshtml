@@ -118,6 +118,40 @@
         <script src="~/js/custom.js"></script>
         <script src="~/contactform/contactform.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.js"></script>
+        <script>
+        // const sessionId = '@Context.Session.Id';
+            const sessionId = '@ViewBag.SessionId';
+            console.log(`sessionId NEEDED: ${sessionId}`);
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(`http://localhost:8081/appointmentHub?sessionId=${sessionId}`)
+            .withAutomaticReconnect()
+            .configureLogging(signalR.LogLevel.Information)
+            .build();
+
+        connection.on("ReceiveStatusUpdate", (status) => {
+            console.log('Status update received:', status);
+
+            if (status === 'Completed') {
+                window.location.href = '/Booking/Completed';
+            } else if (status === 'Failed') {
+                window.location.href = '/Booking/Failed';
+            }
+        });
+
+        connection.on("connected", async () => {
+            console.log("Client Connected to hub!");
+        });
+
+        connection.start()
+            .then(() => {
+                console.log("Connected to SignalR hub");
+            })
+            .catch(err => {
+                console.error("Error connecting to SignalR hub:", err);
+            });
+        </script>
         @await RenderSectionAsync("Scripts", required: false)
     </body>
 </html>

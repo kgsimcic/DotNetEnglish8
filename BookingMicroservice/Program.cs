@@ -2,6 +2,7 @@ using BookingMicroservice;
 using BookingMicroservice.Entities;
 using BookingMicroservice.Services;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Ocelot.Values;
 using RabbitMQ.Client;
@@ -31,7 +32,21 @@ builder.Services.AddSingleton<RabbitMQ.Client.IConnectionFactory, ConnectionFact
 });
 builder.Services.AddSingleton<SseService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<BookingConsumerService>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:5207")
+                .AllowAnyHeader()
+                .WithMethods("GET", "POST")
+                .AllowCredentials();
+        });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -43,7 +58,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-app.UseCors("AllowAll");
+app.UseCors();
 
 app.MapControllers();
 
@@ -51,6 +66,6 @@ app.MapGet("/api/sse/{appointmentId}", async (long appointmentId, HttpResponse r
 {
     await sseService.SubscribeAsync(appointmentId, response);
 });
-app.MapHub<AppointmentHub>("/appointmentHub"); // Map the SignalR hub
+app.MapHub<AppointmentHub>("/appointmentHub");
 
 app.Run();

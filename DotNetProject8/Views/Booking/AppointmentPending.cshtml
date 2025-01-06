@@ -1,5 +1,5 @@
 ﻿@{
-    var appointmentId = ViewBag.AppointmentId;
+    string sessionId = ViewBag.SessionId;
 }
 <!DOCTYPE html>
 <html>
@@ -9,28 +9,5 @@
 <body>
     <h1>Waiting for Appointment Status</h1>
     <div id="status">Waiting...</div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () { 
-            const appointmentId = '@Html.Raw(ViewBag.AppointmentId)';
-            console.log(appointmentId);
-            const eventSource = new EventSource(`http://localhost:5001/api/sse/${appointmentId}`); 
-
-            eventSource.onmessage = function(event) { 
-                const appointmentStatusResponse = JSON.parse(event.data); 
-                console.log('Appointment update received:', appointmentStatusResponse);
-
-                if (appointmentStatusResponse.Status === 'Completed') {
-                    window.location.href = '/Booking/Completed'; 
-                } else if (appointmentStatusResponse.Status === 'Failed') {
-                    window.location.href = '/Booking/Failed'; 
-                }
-            }; 
-            eventSource.onerror = function(error) { 
-                console.error('Error receiving status updates:', error); 
-            };
-            window.addEventListener('beforeunload', function() { 
-                eventSource.close(); 
-            }); });
-    </script>
 </body>
 </html>
