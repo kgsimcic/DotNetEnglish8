@@ -30,7 +30,6 @@ builder.Services.AddSingleton<RabbitMQ.Client.IConnectionFactory, ConnectionFact
 {
     HostName = "localhost"
 });
-builder.Services.AddSingleton<SseService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<BookingConsumerService>();
@@ -62,10 +61,6 @@ app.UseCors();
 
 app.MapControllers();
 
-app.MapGet("/api/sse/{appointmentId}", async (long appointmentId, HttpResponse response, SseService sseService) =>
-{
-    await sseService.SubscribeAsync(appointmentId, response);
-});
 app.MapHub<AppointmentHub>("/appointmentHub");
 
 app.Run();

@@ -16,12 +16,11 @@ namespace DotNetProject8.Services
     public class BookingProducerService 
     {
         private readonly ILogger<BookingProducerService> _logger;
-        private readonly SignalRService _signalRService;
         private const string queueName = "appointment_queue";
         private const string exchangeName = "direct_exchange";
         private const string routingKey = "appointment_routing_key";
 
-        public BookingProducerService(ILogger<BookingProducerService> logger, SignalRService signalRService)
+        public BookingProducerService(ILogger<BookingProducerService> logger)
         {
             _logger = logger;
         }

@@ -16,7 +16,6 @@ public partial class Appointment
     public int ConsultantId { get; set; }
 
     public int? PatientId { get; set; }
-    public long AppointmentUniqueId { get; set; }
 
     public virtual Patient? Patient { get; set; }
 }

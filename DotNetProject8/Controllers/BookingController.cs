@@ -36,16 +36,8 @@ namespace DotNetProject8.Controllers
             return View(bookingRequestModel);
         }
 
-        /*        private long GenerateUniqueId()
-                {
-                    int randomNumber = new Random().Next(1000, 9999);
-                    string dateString = $"{DateTime.Now:yyyyMMddHHmmss}";
-                    return Convert.ToInt64($"{dateString}{randomNumber}"); 
-                }*/
-
         public async Task<IActionResult> EnqueueAppointment([FromForm] BookingRequestModel bookingRequestModel)
         {
-            // bookingRequestModel.Appointment.AppointmentId = GenerateUniqueId();
             bookingRequestModel.Appointment.ConnectionId = HttpContext.Session.Id;
             _logger.LogInformation($"Controller has session Id {HttpContext.Session.Id}.");
             if (!ModelState.IsValid)

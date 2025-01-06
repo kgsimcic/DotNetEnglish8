@@ -12,16 +12,12 @@ namespace BookingMicroservice.Services
     {
         private readonly BookingDbContext _dbContext;
         private readonly ILogger<BookingService> _logger;
-        // private readonly SseService _sseService;
-        // private readonly IHubContext _hubContext;
         private readonly IMemoryCache _memoryCache;
 
         public BookingService(ILogger<BookingService> logger, BookingDbContext dbContext, IMemoryCache memoryCache)
         {
             _logger = logger;
             _dbContext = dbContext;
-            // _sseService = sseService;
-            // _hubContext = hubContext;
             _memoryCache = memoryCache;
         }
 
@@ -71,16 +67,8 @@ namespace BookingMicroservice.Services
                 EndDateTime = appointmentTime.AddHours(1),
                 ConsultantId = bookingModel.Appointment.ConsultantId,
                 PatientId = patient.Id,
-                // Temp: if connection Id maps correctly then i can delete this. 
-                AppointmentUniqueId = 1000L,
                 Patient = patient
             };
-
-            /*AppointmentStatusResponse appointmentStatusResponse = new()
-            {
-                AppointmentId = appointment.AppointmentUniqueId,
-                Status = null
-            };*/
 
             string connectionId = bookingModel.Appointment.ConnectionId;
             string status;

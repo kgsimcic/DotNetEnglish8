@@ -7,7 +7,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IRoutingService, RoutingService>();
 builder.Services.AddTransient<BookingProducerService>();
-builder.Services.AddScoped<SignalRService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options => {
