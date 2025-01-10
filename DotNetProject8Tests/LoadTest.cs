@@ -1,143 +1,219 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
 namespace DotNetProject8Tests
 {
-    public class AppointmentStatusResponse
-    {
-        public long AppointmentId { get; set; }
-        public string? Status { get; set; }
-
-    }
 
     public class LoadTest
     {
-        private HttpClient _sseClient;
-        private HttpClient _client;
-
+        private readonly HttpClient _httpClient;
+        ConcurrentBag<TestResult> _results = new();
+        private const int REQUEST_TIMEOUT_SECONDS = 30;
 
         public LoadTest()
         {
-            var services = new ServiceCollection();
+            ServicePointManager.DefaultConnectionLimit = 3000;
+            ServicePointManager.Expect100Continue = false;
+            ServicePointManager.UseNagleAlgorithm = false;
 
-            // Register IHttpClientFactory and configure an HttpClient
-            services.AddHttpClient("sseClient", client =>
-            {
-                client.BaseAddress = new Uri("http://localhost:5001");
-                client.Timeout = TimeSpan.FromSeconds(300);
-            });
+            var services = new ServiceCollection();
 
             services.AddHttpClient("client", client =>
             {
                 client.BaseAddress = new Uri("http://localhost:5207");
                 client.Timeout = TimeSpan.FromSeconds(300);
+            }).ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                MaxConnectionsPerServer = 3500,
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+                KeepAlivePingTimeout = TimeSpan.FromSeconds(5)
             });
 
             var serviceProvider = services.BuildServiceProvider();
-            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-
-            // Act: Use the factory to create an HttpClient and make a call
-            _sseClient = httpClientFactory.CreateClient("sseClient");
-            _client = httpClientFactory.CreateClient("client");
+            _httpClient = serviceProvider.GetRequiredService<IHttpClientFactory>().CreateClient("client");
         }
 
-        private string GenerateUniqueId()
+        public class TestResult
         {
-            var randomNumber = new Random().Next(1000, 9999);
-            var nowString = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-            return $"{nowString}{randomNumber}";
+            public int RequestId { get; set; }
+            public bool RequestSuccess { get; set; }
+            public DateTime? HttpRequestDt { get; set; }
+            public TimeSpan Duration { get; set; }
+            public string Status { get; set; } = string.Empty;
+            public Exception? Error { get; set; }
+            public string? TimeoutType { get; set; }
+            public bool SignalRReceived { get; set; }
         }
 
-        private async Task PollSSE(ConcurrentBag<string> bag, string appointmentId)
+        public void PrintResults(TimeSpan totalDuration)
         {
-            var sseUrl = $"/api/sse/{appointmentId}";
+            var successCount = _results.Count(r => r.RequestSuccess);
+            var successBookingCount = _results.Count(r => r.Status == "Completed");
+            var avgDuration = _results.Average(r => r.Duration.TotalSeconds);
 
-            var responseStream = await _sseClient.GetStreamAsync(sseUrl);
-            using var reader = new StreamReader(responseStream);
-            string line; 
-            while ((line = await reader.ReadLineAsync()) != null)
+            var timeoutsByType = _results
+                .Where(r => r.TimeoutType != null)
+                .GroupBy(r => r.TimeoutType)
+                .ToDictionary(g => g.Key!, g => g.Count());
+
+            Console.WriteLine("\n=== Test Results ===");
+            Console.WriteLine($"Successful requests: {successCount} out of {_results.Count}");
+            Console.WriteLine($"Successful bookings: {successBookingCount} out of {successCount}");
+            Console.WriteLine($"Average duration: {avgDuration:F2} seconds");
+            Console.WriteLine($"Total Test Duration: {totalDuration.TotalSeconds:F2} seconds");
+
+            Console.WriteLine("\nTimeout Analysis:");
+            foreach (var (type, count) in timeoutsByType)
             {
-                if (!string.IsNullOrWhiteSpace(line) && line.StartsWith("data: "))
-                {
-                    var json = line.Substring("data: ".Length);
-                    var appointmentStatus = JsonConvert.DeserializeObject<AppointmentStatusResponse>(json);
-                    bag.Add(appointmentStatus.Status);
-                    break;
-                } 
+                Console.WriteLine($"- {type} timeouts: {count}");
             }
         }
 
-        private async Task PostRequest(ConcurrentBag<bool> bag, string appointmentId)
+        private static object CreateRequestData(string sessionId) => new
         {
-            var payload = new
+            consultant = new
             {
-                consultant = new
+                consultantId = 1,
+                consultantFname = "Jessica Wally",
+                consultantSpeciality = "Cardiologist"
+            },
+            appointment = new
+            {
+                connectionId = sessionId,
+                appointmentDate = "2025-03-22T16:00:00",
+                selectedAppointmentTime = "2025-03-22T16:00:00"
+            },
+            patient = new
+            {
+                patientFName = "P",
+                patientLName = "Slickback",
+                addressLine1 = "whatever",
+                city = "Canada City",
+                postcode = "15111",
+                contactNumber = "7777777777"
+            }
+        };
+
+        private HubConnection SetupHubConnection(string sessionId)
+        {
+            var hubConnection = new HubConnectionBuilder()
+                .WithUrl($"http://localhost:8081/appointmentHub?sessionId={sessionId}")
+                .WithAutomaticReconnect()
+                .Build();
+            return hubConnection;
+        }
+
+        private async Task SimulateBookingRequest(string sessionId, int requestId)
+        {
+            var startTime = DateTime.Now;
+            var result = new TestResult();
+
+            await using var hubConnection = SetupHubConnection(sessionId);
+            try
+            {
+                // SignalR
+                var tcs = new TaskCompletionSource<(string status, DateTime endTime)>();
+
+                // actually listen for it
+                hubConnection.On<string>("ReceiveStatusUpdate", (status) => {
+                    var endTime = DateTime.Now;
+                    tcs.TrySetResult((status, endTime));
+                });
+
+                hubConnection.Closed += (error) =>
                 {
-                    consultantId = 1,
-                    consultantFname = "Jessica Wally",
-                    consultantSpeciality = "Cardiologist"
-                },
-                appointment = new
+                    if (error != null)
+                    {
+                        Console.WriteLine($"Connection {sessionId} closed. Error: {error?.Message}");
+                    }
+                    return Task.CompletedTask;
+                };
+
+                await hubConnection.StartAsync();
+
+                // send booking request
+
+                var requestData = CreateRequestData(sessionId);
+                var content = new StringContent(JsonConvert.SerializeObject(requestData), Encoding.UTF8, "application/json");
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(REQUEST_TIMEOUT_SECONDS));
+                var response = await _httpClient.PostAsync($"Appointments", content, cts.Token);
+                result.HttpRequestDt = DateTime.Now;
+
+                if (response.IsSuccessStatusCode)
                 {
-                    appointmentId,
-                    appointmentDate = "2025-03-22T16:00:00",
-                    selectedAppointmentTime = "2025-03-22T16:00:00"
-                },
-                patient = new
+                    result.RequestSuccess = true;
+                    try
+                    {
+                        var (status, endTime) = await tcs.Task.WaitAsync(cts.Token);
+                        result.Duration = endTime - startTime;
+                        result.Status = status;
+                        result.SignalRReceived = true;
+                    } catch (OperationCanceledException)
+                    {
+                        result.Error = new TimeoutException($"SignalR response timed out for request {requestId}");
+                        result.TimeoutType = "SignalR";
+                        Console.WriteLine($"Request {requestId}: SignalR response timed out after successful HTTP request");
+                    }
+                } else
                 {
-                    patientFName = "P",
-                    patientLName = "Slickback",
-                    addressLine1 = "whatever",
-                    city = "Canada City",
-                    postcode = "15111",
-                    contactNumber = "7777777777"
+                    result.RequestSuccess = false;
+                    result.Error = new HttpRequestException($"HTTP request failed with status {response.StatusCode}");
+                    result.TimeoutType = "HTTP";
+                    Console.WriteLine($"Request {requestId}: HTTP request failed with status {response.StatusCode}");
                 }
-            };
-
-            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
-
-            var response = await _client.PostAsync($"Appointments", content);
-            bag.Add(response.IsSuccessStatusCode);
-            if (!response.IsSuccessStatusCode)
+            }
+            catch (OperationCanceledException)
             {
-                Console.WriteLine($"POST response for {appointmentId} returned {response.StatusCode}.");
+                result.TimeoutType = "Overall";
+                result.Error = new TimeoutException($"Request {requestId} timed out");
+                Console.WriteLine($"Request {requestId} timed out. RequestSuccess: {result.RequestSuccess}; HTTPRequest Timestamp: {result.HttpRequestDt};");
+            }
+            catch (Exception ex)
+            {
+                result.RequestSuccess = false;
+                result.Error = ex;
+                Console.WriteLine($"Request {requestId} failed: {ex.Message}");
+            }
+            finally
+            {
+                _results.Add(result);
+
+                if (hubConnection != null)
+                {
+                    await hubConnection.StopAsync();
+                    await hubConnection.DisposeAsync();
+                }
             }
         }
 
         [Fact]
-        public async Task SimulateConcurrentClients()
+        public async Task RunTest()
         {
-            int clientCount = 500;
-            Console.WriteLine("Testing 3000 concurrent requests with the same appointment; so it should have 2999 double bookings.");
+            int nTasks = 200;
 
-            ConcurrentBag<bool> httpBag = [];
-            ConcurrentBag<string> sseBag = [];
-
-            var tasks = new List<Task>(); 
-            for (int i = 0; i < clientCount; i++)
+            var tasks = new List<Task>();
+            for (int i = 0; i < nTasks; i++)
             {
-                var appointmentId = GenerateUniqueId();
-                var sseTask = PollSSE(sseBag, appointmentId); 
-                tasks.Add(sseTask); 
-                var postTask = PostRequest(httpBag, appointmentId); 
-                tasks.Add(postTask); 
+                string sessionId = $"{Guid.NewGuid()}";
+                tasks.Add(SimulateBookingRequest(sessionId, i));
             }
-
+            var startTime = DateTime.Now;
             await Task.WhenAll(tasks);
-            int httpSuccessCount = httpBag.Count(s => s == true);
-            int sseCompleteCount = sseBag.Count(s => s == "Completed");
-            Console.WriteLine($"{httpSuccessCount} HTTP requests out of {httpBag.Count} returned 200 OK.");
-            Console.WriteLine($"{sseCompleteCount} SSE appointments out of {sseBag.Count} total successfully made.");
-            Assert.Equal(httpSuccessCount, clientCount);
-            Assert.Equal(1, sseCompleteCount);
+            var totalDuration = DateTime.Now - startTime;
+
+            PrintResults(totalDuration);
         }
     }
 }

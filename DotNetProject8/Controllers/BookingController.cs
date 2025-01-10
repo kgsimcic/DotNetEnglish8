@@ -55,7 +55,6 @@ namespace DotNetProject8.Controllers
         [HttpPost("Appointments")]
         public async Task<IActionResult> ApiEnqueueAppointment([FromBody] BookingRequestModel bookingRequestModel)
         {
-            bookingRequestModel.Appointment.ConnectionId = HttpContext.Session.Id;
             if (!ModelState.IsValid)
             {
                 return BadRequest("Modelstate invalid!");
@@ -63,7 +62,7 @@ namespace DotNetProject8.Controllers
             _logger.LogInformation("DN8: Appointment Creation Requested via API. Passing to Booking Service...");
             await _producerService.EnqueueBookingAsync(bookingRequestModel);
 
-            return Ok();
+            return Ok(HttpContext.Session.Id);
         }
 
         public IActionResult Completed()

@@ -52,7 +52,7 @@ namespace BookingMicroservice.Services
                 routingKey: RoutingKey
             );
 
-            await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 1, global: false);
+            await _channel.BasicQosAsync(prefetchSize: 0, prefetchCount: 200, global: false);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
