@@ -201,17 +201,19 @@ namespace DotNetProject8Tests
         [Fact]
         public async Task RunTest()
         {
-            int nTasks = 200;
-
+            int nTasks = 3000;
             var tasks = new List<Task>();
+            DateTime loadTestStartTime = DateTime.Now;
+
             for (int i = 0; i < nTasks; i++)
             {
                 string sessionId = $"{Guid.NewGuid()}";
                 tasks.Add(SimulateBookingRequest(sessionId, i));
+                await Task.Delay(75);
             }
-            var startTime = DateTime.Now;
+            var endTime = DateTime.Now;
             await Task.WhenAll(tasks);
-            var totalDuration = DateTime.Now - startTime;
+            var totalDuration = endTime - loadTestStartTime;
 
             PrintResults(totalDuration);
         }
