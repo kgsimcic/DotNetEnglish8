@@ -1,21 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace DotNetProject8.Models
+namespace DotNetProject8.ViewModels
 {
-    public class ConsultantModel
+    public class ConsultantViewModel
     {
-        [Key]
         public int Id { get; set; }
         public string? Fname { get; set; }
         public string? Lname { get; set; }
         public string? Speciality { get; set; }
     }
 
-    public class ConsultantModelList
+    public class ConsultantViewModelList
     {
-        public List<ConsultantCalendarModel>? ConsultantCalendars { get; set; }
-        public List<ConsultantModel>? Consultants { get; set; }
+        public List<ConsultantCalendarViewModel>? ConsultantCalendars { get; set; }
+        public List<ConsultantViewModel>? Consultants { get; set; }
         public int SelectedConsultantId { get; set; } = int.MaxValue;
         public SelectList? ConsultantsList { get; set; }
     }

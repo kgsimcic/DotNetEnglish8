@@ -9,10 +9,11 @@ using Microsoft.AspNetCore.Connections.Features;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using DotNetProject8.ViewModels;
 
 namespace DotNetProject8.Services
 {
-   
+
     public class BookingProducerService 
     {
         private readonly ILogger<BookingProducerService> _logger;
@@ -25,7 +26,7 @@ namespace DotNetProject8.Services
             _logger = logger;
         }
 
-        public BookingRequestModel CreateBookingModel(DateTime date, ConsultantModel consultant, List<DateTime> takenAppointmentTimes)
+        public BookingRequestModel CreateBookingModel(DateTime date, ConsultantViewModel consultant, List<DateTime> takenAppointmentTimes)
         {
 
             List<DateTime> appointmentTimes = new();

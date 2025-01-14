@@ -209,7 +209,10 @@ namespace DotNetProject8Tests
             {
                 string sessionId = $"{Guid.NewGuid()}";
                 tasks.Add(SimulateBookingRequest(sessionId, i));
-                await Task.Delay(75);
+                if (i != nTasks - 1)
+                {
+                    await Task.Delay(30);
+                }
             }
             var endTime = DateTime.Now;
             await Task.WhenAll(tasks);

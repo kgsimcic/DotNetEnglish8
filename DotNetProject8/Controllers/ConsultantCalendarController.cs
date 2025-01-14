@@ -1,5 +1,5 @@
-﻿using DotNetProject8.Models;
-using DotNetProject8.Services;
+﻿using DotNetProject8.Services;
+using DotNetProject8.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json;
@@ -26,9 +26,9 @@ namespace DotNetProject8.Controllers
             }
             DateTime targetMonthYear = new(year, selectedMonth, 1);
 
-            List<ConsultantModel>? consultants = await _routingService.GetConsultantsAsync();
-            List<ConsultantCalendarModel>? consultantCalendars = await _routingService.GetConsultantCalendars(selectedMonth);
-            ConsultantModelList consultantModelList = new()
+            List<ConsultantViewModel>? consultants = await _routingService.GetConsultantsAsync();
+            List<ConsultantCalendarViewModel>? consultantCalendars = await _routingService.GetConsultantCalendars(selectedMonth);
+            ConsultantViewModelList consultantViewModelList = new()
             {
                 ConsultantCalendars = consultantCalendars,
                 Consultants = consultants,
@@ -39,7 +39,7 @@ namespace DotNetProject8.Controllers
             ViewBag.minDate = targetMonthYear;
             ViewBag.maxDate = new DateTime(targetMonthYear.Year, targetMonthYear.Month,
                 DateTime.DaysInMonth(targetMonthYear.Year, targetMonthYear.Month));
-            return View(consultantModelList);
+            return View(consultantViewModelList);
         }
 
     }

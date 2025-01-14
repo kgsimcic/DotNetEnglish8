@@ -1,4 +1,4 @@
-using DotNetProject8.Models;
+using DotNetProject8.ViewModels;
 using DotNetProject8.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -22,13 +22,13 @@ namespace DotNetProject8.Controllers
         public async Task<IActionResult> Index()
         {
 
-            List<ConsultantModel>? consultantModels = await _routingService.GetConsultantsAsync();
+            List<ConsultantViewModel>? consultantModels = await _routingService.GetConsultantsAsync();
             if (consultantModels == null)
             {
                 _logger.LogWarning("nothing found");
             }
 
-            return View(new ConsultantModelList
+            return View(new ConsultantViewModelList
             {
                 Consultants = consultantModels
             });

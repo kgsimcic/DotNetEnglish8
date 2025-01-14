@@ -24,14 +24,18 @@ namespace DotNetProject8.Controllers
             _producerService = producerService;
         }
 
-        public async Task<IActionResult> CreateBooking([FromBody] BookingRequest bookingRequest)
+        public async Task<IActionResult> CreateBooking([FromBody] BookingRequestInfoModel bookingRequestInfoModel)
         {
             _logger.LogInformation("DN8: Redirecting to CreateBooking view...");
 
-            List<AppointmentResponse> appointments = await _routingService.GetAppointments(bookingRequest.Consultant.Id, bookingRequest.Date);
+            List<AppointmentModel> appointments = await _routingService.GetAppointments(bookingRequestInfoModel.Consultant.Id, bookingRequestInfoModel.Date);
             List<DateTime> takenAppointmentTimes = appointments.Select(a => a.AppointmentTime).ToList();
 
-            BookingRequestModel bookingRequestModel = _producerService.CreateBookingModel(bookingRequest.Date, bookingRequest.Consultant, takenAppointmentTimes);
+            BookingRequestModel bookingRequestModel = _producerService.CreateBookingModel(
+                bookingRequestInfoModel.Date, 
+                bookingRequestInfoModel.Consultant, 
+                takenAppointmentTimes
+                );
 
             return View(bookingRequestModel);
         }
@@ -51,7 +55,7 @@ namespace DotNetProject8.Controllers
             return View("AppointmentPending");
         }
 
-        // For testing only: call via api endpoint. 
+        // For testing only
         [HttpPost("Appointments")]
         public async Task<IActionResult> ApiEnqueueAppointment([FromBody] BookingRequestModel bookingRequestModel)
         {

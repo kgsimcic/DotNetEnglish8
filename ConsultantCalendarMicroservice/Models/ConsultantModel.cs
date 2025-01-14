@@ -13,7 +13,7 @@ namespace ConsultantCalendarMicroservice.Models
         public string? Speciality { get; set; }
     }
 
-    public class ConsultantModelList
+    public class ConsultantViewModelList
     {
         public List<ConsultantCalendar>? ConsultantCalendars { get; set; }
         public List<Consultant>? Consultants { get; set; }
