@@ -7,5 +7,6 @@ namespace BookingMicroservice.Services
     {
         public Task<IEnumerable<AppointmentDetails>> GetBookings(DateTime selectedDate);
         public Task<string> ProcessBookingAsync(BookingModel bookingModel);
+        public Task<int> GetAppointmentCountAsync(string cacheKey, DateTime startDateTime);
     }
 }

@@ -41,8 +41,6 @@ namespace BookingMicroservice.Services
                 count = await _dbContext.Appointments.CountAsync(
                 a => a.StartDateTime.Hour == startDateTime.Hour &&
                 a.StartDateTime.Date == startDateTime.Date);
-                /*var cacheEntryOptions = new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromMinutes(10)); 
-                _memoryCache.Set(cacheKey, count, cacheEntryOptions); */
             }
             return count; 
         }
@@ -101,8 +99,6 @@ namespace BookingMicroservice.Services
                 }
             }
 
-            // await _sseService.SendUpdateAsync(appointment.AppointmentUniqueId, appointmentStatusResponse);
-            // await _hubContext.Clients.Client(connectionId).SendAsync("ReceiveStatusUpdate", status);
             return status;
         }
     }
