@@ -14,7 +14,7 @@ namespace BookingMicroservice.Models
 
     public class AppointmentDetails
     {
-        public string ConnectionId { get; set; }
+        public string ConnectionId { get; set; } = null!;
         public DateTime AppointmentDate { get; set; } = new DateTime();
         public DateTime AppointmentTime { get; set; } = new DateTime();
         public int ConsultantId { get; set; } = new int();
@@ -22,13 +22,13 @@ namespace BookingMicroservice.Models
 
     public class PatientDetails
     {
-        public string PatientFName { get; set; }
-        public string PatientLName { get; set; }
-        public string AddressLine1 { get; set; }
+        public string PatientFName { get; set; } = String.Empty;
+        public string PatientLName { get; set; } = String.Empty;
+        public string AddressLine1 { get; set; } = String.Empty;
         public string? AddressLine2 { get; set; }
         public string? Region { get; set; }
-        public string City { get; set; }
-        public string Postcode { get; set; }
-        public string ContactNumber { get; set; }
+        public string City { get; set; } = String.Empty;
+        public string Postcode { get; set; } = String.Empty;
+        public string ContactNumber { get; set; } = String.Empty;
     }
 }

@@ -5,9 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace DotNetProject8.Models
+namespace DotNetProject8.ViewModels
 {
-
     public class BookingRequestModel
     {
         public PatientRequestDetails Patient { get; set; } = new PatientRequestDetails();

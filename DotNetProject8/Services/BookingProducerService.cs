@@ -29,7 +29,7 @@ namespace DotNetProject8.Services
         public BookingRequestModel CreateBookingModel(DateTime date, ConsultantViewModel consultant, List<DateTime> takenAppointmentTimes)
         {
 
-            List<DateTime> appointmentTimes = new();
+            List<DateTime> appointmentTimes = [];
 
             DateTime startTime = date.AddHours(8);
 
